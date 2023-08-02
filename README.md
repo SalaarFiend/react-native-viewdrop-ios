@@ -11,12 +11,18 @@ npm install react-native-viewdrop-ios
 ## Usage
 
 ```js
-import { multiply } from 'react-native-viewdrop-ios';
+import { ViewDrop } from 'react-native-viewdrop-ios';
 
 // ...
 
-const result = await multiply(3, 7);
+<ViewDrop style={styles.container} onImageReceived={setImage}>
+  // your views
+</ViewDrop>;
 ```
+
+| Method          | Description                     |
+| --------------- | ------------------------------- |
+| onImageReceived | (image : base64_string) => void |
 
 ## Contributing
 
