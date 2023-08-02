@@ -1,19 +1,31 @@
 import * as React from 'react';
 
-import { StyleSheet, View, Text } from 'react-native';
-import { multiply } from 'react-native-viewdrop-ios';
+import { StyleSheet, Text, Image, TouchableOpacity } from 'react-native';
+import { ViewDrop } from 'react-native-viewdrop-ios';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
-
-  React.useEffect(() => {
-    multiply(3, 7).then(setResult);
-  }, []);
-
+  const [image, setImage] = React.useState('');
   return (
-    <View style={styles.container}>
-      <Text>Result: {result}</Text>
-    </View>
+    <ViewDrop style={styles.container} onImageReceived={setImage}>
+      {!image ? (
+        <Text>Drop Here Image</Text>
+      ) : (
+        <Image
+          source={{ uri: image.replace(/(\r\n|\n|\r)/gm, '') }}
+          style={{
+            width: '80%',
+            height: '70%',
+            borderWidth: 1,
+            borderColor: 'pink',
+          }}
+        />
+      )}
+      {!!image && (
+        <TouchableOpacity onPress={() => setImage('')}>
+          <Text>Delete Image</Text>
+        </TouchableOpacity>
+      )}
+    </ViewDrop>
   );
 }
 

@@ -1,22 +1,3 @@
-import { NativeModules, Platform } from 'react-native';
+export { ViewDrop } from './ViewDrop';
 
-const LINKING_ERROR =
-  `The package 'react-native-viewdrop-ios' doesn't seem to be linked. Make sure: \n\n` +
-  Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
-  '- You rebuilt the app after installing the package\n' +
-  '- You are not using Expo Go\n';
 
-const ViewdropIos = NativeModules.ViewdropIos
-  ? NativeModules.ViewdropIos
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
-
-export function multiply(a: number, b: number): Promise<number> {
-  return ViewdropIos.multiply(a, b);
-}
