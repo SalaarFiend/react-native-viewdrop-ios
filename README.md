@@ -15,14 +15,18 @@ import { ViewDrop } from 'react-native-viewdrop-ios';
 
 // ...
 
-<ViewDrop style={styles.container} onImageReceived={setImage}>
+<ViewDrop style={styles.container}
+    onImageReceived={setImage}
+    onDropItemDetected={() => some logic for start dropping}
+>
   // your views
 </ViewDrop>;
 ```
 
-| Method          | Description                     |
-| --------------- | ------------------------------- |
-| onImageReceived | (image : base64_string) => void |
+| Method             | Description                     |
+| ------------------ | ------------------------------- |
+| onImageReceived    | (image : base64_string) => void |
+| onDropItemDetected | () => void                      |
 
 ## Contributing
 

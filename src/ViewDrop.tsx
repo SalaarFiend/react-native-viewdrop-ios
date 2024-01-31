@@ -1,5 +1,3 @@
-
-
 import React, { type FC, type SyntheticEvent } from 'react';
 
 import { viewDropStyles } from './ViewDrop.styles';
@@ -10,6 +8,7 @@ import { Platform } from 'react-native';
 export const ViewDrop: FC<Props> = ({
   children,
   onImageReceived,
+  onDropItemDetected,
   ...props
 }) => {
   const onImageReceivedEvent = (event: SyntheticEvent) => {
@@ -21,6 +20,14 @@ export const ViewDrop: FC<Props> = ({
     onImageReceived(image);
   };
 
+  const onDropItemDetectedEvent = () => {
+    if (!onDropItemDetected) {
+      return;
+    }
+
+    onDropItemDetected();
+  };
+
   if (Platform.OS === 'android') {
     return <>{children}</>;
   }
@@ -30,6 +37,7 @@ export const ViewDrop: FC<Props> = ({
       style={viewDropStyles.viewDrop}
       {...props}
       onImageReceived={onImageReceivedEvent}
+      onDropItemDetected={onDropItemDetectedEvent}
     >
       {children}
     </ViewDropModule>

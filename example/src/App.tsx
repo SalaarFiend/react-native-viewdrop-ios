@@ -6,7 +6,11 @@ import { ViewDrop } from 'react-native-viewdrop-ios';
 export default function App() {
   const [image, setImage] = React.useState('');
   return (
-    <ViewDrop style={styles.container} onImageReceived={setImage}>
+    <ViewDrop
+      style={styles.container}
+      onImageReceived={setImage}
+      onDropItemDetected={() => console.log('DROP START')}
+    >
       {!image ? (
         <Text>Drop Here Image</Text>
       ) : (

@@ -7,6 +7,9 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
 
   @objc(onImageReceived)
   var onImageReceived : RCTBubblingEventBlock?;
+    
+    @objc(onDropItemDetected)
+    var onDropItemDetected : RCTBubblingEventBlock?;
 
   init(){
     super.init(frame: CGRect(x: 0, y: 0, width: .max, height: .max))
@@ -63,4 +66,10 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
   func dropInteraction(_ interaction: UIDropInteraction, canHandle session: UIDropSession) -> Bool {
       return session.canLoadObjects(ofClass: UIImage.self)
   }
+    
+    func dropInteraction(_ interaction: UIDropInteraction, sessionDidEnter session: UIDropSession) {
+        if let sendEventToReact = self.onDropItemDetected {
+            sendEventToReact([:])
+        }
+    }
 }
