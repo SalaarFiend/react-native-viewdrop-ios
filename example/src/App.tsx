@@ -5,15 +5,11 @@ import { ViewDrop } from 'react-native-viewdrop-ios';
 
 export default function App() {
   const [image, setImage] = React.useState('');
-  return (
-    <ViewDrop
-      style={styles.container}
-      onImageReceived={setImage}
-      onDropItemDetected={() => console.log('DROP START')}
-    >
-      {!image ? (
-        <Text>Drop Here Image</Text>
-      ) : (
+  const [videoSource, setVideoSource] = React.useState('');
+
+  const content = React.useMemo(() => {
+    if (image) {
+      return (
         <Image
           source={{ uri: image.replace(/(\r\n|\n|\r)/gm, '') }}
           style={{
@@ -23,7 +19,25 @@ export default function App() {
             borderColor: 'pink',
           }}
         />
-      )}
+      );
+    } else if (videoSource) {
+      return <></>;
+      // some video showing
+    }
+    return <Text>Drop Here Image</Text>;
+  }, [image, videoSource]);
+
+  return (
+    <ViewDrop
+      style={styles.container}
+      onImageReceived={setImage}
+      onDropItemDetected={() => console.log('DROP START')}
+      onVideoReceived={(info) => {
+        console.log('INFO:', info);
+        setVideoSource(info.fullUrl);
+      }}
+    >
+      {content}
       {!!image && (
         <TouchableOpacity onPress={() => setImage('')}>
           <Text>Delete Image</Text>
@@ -38,6 +52,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'grey',
   },
   box: {
     width: 60,
