@@ -2,6 +2,8 @@ import * as React from 'react';
 
 import { StyleSheet, Text, Image, TouchableOpacity } from 'react-native';
 import { ViewDrop } from 'react-native-viewdrop-ios';
+//@ts-ignore
+import Video from 'react-native-video';
 
 export default function App() {
   const [image, setImage] = React.useState('');
@@ -21,10 +23,21 @@ export default function App() {
         />
       );
     } else if (videoSource) {
-      return <></>;
       // some video showing
+      return (
+        <Video
+          source={{ uri: videoSource }}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            bottom: 0,
+            right: 0,
+          }}
+        />
+      );
     }
-    return <Text>Drop Here Image</Text>;
+    return <Text>Drop Here Image or Video</Text>;
   }, [image, videoSource]);
 
   return (
@@ -33,7 +46,6 @@ export default function App() {
       onImageReceived={setImage}
       onDropItemDetected={() => console.log('DROP START')}
       onVideoReceived={(info) => {
-        console.log('INFO:', info);
         setVideoSource(info.fullUrl);
       }}
     >
@@ -41,6 +53,11 @@ export default function App() {
       {!!image && (
         <TouchableOpacity onPress={() => setImage('')}>
           <Text>Delete Image</Text>
+        </TouchableOpacity>
+      )}
+      {!!videoSource && (
+        <TouchableOpacity onPress={() => setVideoSource('')}>
+          <Text>Delete Video</Text>
         </TouchableOpacity>
       )}
     </ViewDrop>
