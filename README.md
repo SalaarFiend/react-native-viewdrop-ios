@@ -18,6 +18,9 @@ import { ViewDrop } from 'react-native-viewdrop-ios';
 <ViewDrop style={styles.container}
     onImageReceived={setImage}
     onDropItemDetected={() => some logic for start dropping}
+    onVideoReceived={({fileName : string, fullUrl : string}) => {
+      some logic with path of video file
+    }}
 >
   // your views
 </ViewDrop>;
@@ -25,8 +28,17 @@ import { ViewDrop } from 'react-native-viewdrop-ios';
 
 | Method             | Description                     |
 | ------------------ | ------------------------------- |
-| onImageReceived    | (image : base64_string) => void |
+| onImageReceived    | ( image : base64_string ) => void |
 | onDropItemDetected | () => void                      |
+| onVideoReceived    | ( fileName : string, fullUrl : string ) => void                      |
+
+
+## Future Plans
+
+- Add file drops (such as doc, txt, pdf e.t.c.)
+- Add option like whiteList for dropping to view
+- Settings for resize images
+- Maybe whiteList for extensions of files (jpeg,png,mov e.t.c.)
 
 ## Contributing
 
