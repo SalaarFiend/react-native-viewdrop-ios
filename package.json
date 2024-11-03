@@ -1,6 +1,6 @@
 {
   "name": "react-native-viewdrop-ios",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "ViewDrop is a module for React Native that will allow View to use a native iOS feature to transfer pictures, videos, files, and more through a simple Drag & Drop action.",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
