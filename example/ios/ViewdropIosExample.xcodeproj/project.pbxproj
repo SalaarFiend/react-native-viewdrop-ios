@@ -12,6 +12,7 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		1932584E86C0F09D31E7F350 /* libPods-ViewdropIosExample-ViewdropIosExampleTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F9EC58C3D84F5101F609638 /* libPods-ViewdropIosExample-ViewdropIosExampleTests.a */; };
+		4EDEAA7ADF8A74C6F8FBF332 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 1547AD8164E7FC77F5CEDABC /* PrivacyInfo.xcprivacy */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		A96DBD68D5A27141522D03F2 /* libPods-ViewdropIosExample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B2305429AFD76CE2661AF835 /* libPods-ViewdropIosExample.a */; };
 /* End PBXBuildFile section */
@@ -37,6 +38,7 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = ViewdropIosExample/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ViewdropIosExample/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = ViewdropIosExample/main.m; sourceTree = "<group>"; };
+		1547AD8164E7FC77F5CEDABC /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = ViewdropIosExample/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		310577FDBEBD869264038B53 /* Pods-ViewdropIosExample-ViewdropIosExampleTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ViewdropIosExample-ViewdropIosExampleTests.release.xcconfig"; path = "Target Support Files/Pods-ViewdropIosExample-ViewdropIosExampleTests/Pods-ViewdropIosExample-ViewdropIosExampleTests.release.xcconfig"; sourceTree = "<group>"; };
 		41C6AFEBA358164AB832A437 /* Pods-ViewdropIosExample-ViewdropIosExampleTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ViewdropIosExample-ViewdropIosExampleTests.debug.xcconfig"; path = "Target Support Files/Pods-ViewdropIosExample-ViewdropIosExampleTests/Pods-ViewdropIosExample-ViewdropIosExampleTests.debug.xcconfig"; sourceTree = "<group>"; };
 		7F9EC58C3D84F5101F609638 /* libPods-ViewdropIosExample-ViewdropIosExampleTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ViewdropIosExample-ViewdropIosExampleTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -93,6 +95,7 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB71A68108700A75B9A /* main.m */,
+				1547AD8164E7FC77F5CEDABC /* PrivacyInfo.xcprivacy */,
 			);
 			name = ViewdropIosExample;
 			sourceTree = "<group>";
@@ -246,6 +249,7 @@
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				4EDEAA7ADF8A74C6F8FBF332 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -605,8 +609,14 @@
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
 				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				USE_HERMES = true;
 			};
 			name = Debug;
 		};
@@ -670,8 +680,13 @@
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
 				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
