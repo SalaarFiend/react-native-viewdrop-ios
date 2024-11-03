@@ -5,9 +5,10 @@ export interface ViewDropNativeModuleProps {
   onImageReceived: (event: SyntheticEvent) => void;
   onDropItemDetected: (event: SyntheticEvent) => void;
   onVideoReceived: (event: SyntheticEvent) => void;
+  onAudioReceived: (event: SyntheticEvent) => void;
 }
 
-export type VideoType = {
+export type AvAssetType = {
   fullUrl: string;
   fileName: string;
 };
@@ -15,5 +16,6 @@ export type VideoType = {
 export type Props = {
   onImageReceived?: (image: string) => void;
   onDropItemDetected?: () => void;
-  onVideoReceived?: (videoInfo: VideoType) => void;
+  onVideoReceived?: (videoInfo: AvAssetType) => void;
+  onAudioReceived?: (audioInfo: AvAssetType) => void;
 } & ViewProps;

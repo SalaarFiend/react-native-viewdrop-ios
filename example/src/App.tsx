@@ -37,7 +37,7 @@ export default function App() {
         />
       );
     }
-    return <Text>Drop Here Image or Video</Text>;
+    return <Text>Drop Here Image or Video or Audio</Text>;
   }, [image, videoSource]);
 
   return (
@@ -46,7 +46,11 @@ export default function App() {
       onImageReceived={setImage}
       onDropItemDetected={() => console.log('DROP START')}
       onVideoReceived={(info) => {
+        console.log('INFO VIDEO', info.fullUrl);
         setVideoSource(info.fullUrl);
+      }}
+      onAudioReceived={(info) => {
+        console.log('INFO AUDIO', info.fullUrl);
       }}
     >
       {content}
