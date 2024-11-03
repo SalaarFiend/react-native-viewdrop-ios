@@ -21,6 +21,9 @@ import { ViewDrop } from 'react-native-viewdrop-ios';
     onVideoReceived={({fileName : string, fullUrl : string}) => {
       some logic with path of video file
     }}
+    onAudioReceived={({fileName : string, fullUrl : string}) => {
+      some logic with path of audio file
+    }}
 >
   // your views
 </ViewDrop>;
@@ -31,6 +34,7 @@ import { ViewDrop } from 'react-native-viewdrop-ios';
 | onImageReceived    | ( image : base64_string ) => void |
 | onDropItemDetected | () => void                      |
 | onVideoReceived    | ( fileName : string, fullUrl : string ) => void                      |
+| onAudioReceived    | ( fileName : string, fullUrl : string ) => void                      |
 
 
 ## Future Plans
