@@ -10,6 +10,7 @@ export const ViewDrop: FC<Props> = ({
   onImageReceived,
   onDropItemDetected,
   onVideoReceived,
+  onAudioReceived,
   ...props
 }) => {
   const onImageReceivedEvent = (event: SyntheticEvent) => {
@@ -28,6 +29,16 @@ export const ViewDrop: FC<Props> = ({
     //@ts-ignore
     const videoInfo = event.nativeEvent?.videoInfo;
     onVideoReceived(videoInfo);
+  };
+
+  const onAudioReceivedEvent = (event: SyntheticEvent) => {
+    if (!onAudioReceived) {
+      return;
+    }
+
+    //@ts-ignore
+    const audioInfo = event.nativeEvent?.audioInfo;
+    onAudioReceived(audioInfo);
   };
 
   const onDropItemDetectedEvent = () => {
@@ -49,6 +60,7 @@ export const ViewDrop: FC<Props> = ({
       onImageReceived={onImageReceivedEvent}
       onDropItemDetected={onDropItemDetectedEvent}
       onVideoReceived={onVideoReceivedEvent}
+      onAudioReceived={onAudioReceivedEvent}
     >
       {children}
     </ViewDropModule>
