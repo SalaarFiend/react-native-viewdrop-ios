@@ -8,6 +8,7 @@ import AVFoundation
 
 import os
 
+@objc(ViewDrop)
 class ViewDrop: UIView, UIDropInteractionDelegate {
   
   @objc(onImageReceived)
@@ -25,6 +26,20 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
   private var videoType : String = ""
   
   private var audioType : String = ""
+  
+  private var acceptedUTTypes: [String] = []
+  
+  @objc var fileTypes: NSArray = [] {
+    didSet {
+      acceptedUTTypes = fileTypes.compactMap { ($0 as? String).flatMap { fileTypeMapping[$0] } }
+    }
+  }
+  
+  @objc let fileTypeMapping: [String: String] = [
+    "video": kUTTypeMovie as String,
+    "audio": kUTTypeAudio as String,
+    "image": kUTTypeImage as String
+  ]
   
   init(){
     super.init(frame: CGRect(x: 0, y: 0, width: .max, height: .max))
@@ -45,15 +60,12 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
   required init?(coder: NSCoder) {
     fatalError("ViewDrop init() has not been implemented")
   }
-  
   let pngPrefix = "data:image/png;base64,"
   let jpegPrefix = "data:image/jpeg;base64,"
-  
-  
-  
   func hasAlpha (image : UIImage) -> Bool {
     let alpha = image.cgImage?.alphaInfo
     return (
+      
       alpha == CGImageAlphaInfo.first ||
       alpha == CGImageAlphaInfo.last ||
       alpha == CGImageAlphaInfo.premultipliedFirst ||
@@ -62,14 +74,9 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
   }
   
   
+  
+  
   func dropInteraction(_ interaction: UIDropInteraction, performDrop session: UIDropSession) {
-    if #available(iOS 14.0, *) {
-      Logger().log("SESSION OBJECTS,\(session.items)")
-      NSLog("DROP: SESSION OBJECTS \(session.items[0].itemProvider.registeredTypeIdentifiers)")
-    } else {
-      // Fallback on earlier versions
-    }
-    
     //MARK: - Image send event
     session.loadObjects(ofClass: UIImage.self) { imageItems in
       if self.onImageReceived != nil {
@@ -126,7 +133,6 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
         return
       }
       // MARK: - Audio send event
-      
       if(item.itemProvider.hasItemConformingToTypeIdentifier(audioType)){
         item.itemProvider.loadDataRepresentation(forTypeIdentifier: audioType,completionHandler: {(data,error) in
           guard let data = data else {return}
@@ -173,7 +179,10 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
   }
   
   func dropInteraction(_ interaction: UIDropInteraction, canHandle session: UIDropSession) -> Bool {
-    return true
+    if acceptedUTTypes.isEmpty {
+      return true
+    }
+    return session.hasItemsConforming(toTypeIdentifiers: acceptedUTTypes)
   }
   
   func dropInteraction(_ interaction: UIDropInteraction, sessionDidEnter session: UIDropSession) {
@@ -192,7 +201,6 @@ struct VideoAV {
     self.fullUrl = fullUrl
     self.fileName = fileName
   }
-  
 }
 
 struct AVAssetForRN {
@@ -214,14 +222,8 @@ extension Data {
     let fullURL = NSURL.fileURL(withPathComponents: [directory, fileName])
     try! self.write(to: fullURL!)
     let asset = AVAsset(url: fullURL!)
-    
-    if #available(iOS 14.0, *) {
-      Logger().log("FULL URL: \(fullURL!)")
-    } else {
-      // Fallback on earlier versions
-    }
     let result = AVAssetForRN(asset: asset, fullUrl: fullURL!, fileName: fileName)
     return result
   }
-
+  
 }
