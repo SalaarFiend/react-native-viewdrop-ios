@@ -52,6 +52,7 @@ export default function App() {
       onAudioReceived={(info) => {
         console.log('INFO AUDIO', info.fullUrl);
       }}
+      fileTypes={['image', 'video']}
     >
       {content}
       {!!image && (
