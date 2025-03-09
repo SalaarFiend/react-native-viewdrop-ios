@@ -28,8 +28,10 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
   private let imageType : String = kUTTypeImage as String
 
   private var acceptedUTTypes: [String] = []
-  
+
   @objc private var whiteListExtensions: [String]?
+  @objc private var blackListExtensions: [String]?
+
 
   @objc var fileTypes: NSArray = [] {
     didSet {
@@ -52,7 +54,7 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
   required init?(coder: NSCoder) {
     fatalError("ViewDrop init() has not been implemented")
   }
-  
+
   let pngPrefix = "data:image/png;base64,"
   let jpegPrefix = "data:image/jpeg;base64,"
   func hasAlpha (image : UIImage) -> Bool {
@@ -179,7 +181,7 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
       sendEventToReact([:])
     }
   }
-  
+
   private func checkItemsConforimng(_ session: UIDropSession) -> Bool {
     // if no defiend -> accepts all types
     if(acceptedUTTypes.isEmpty){
@@ -189,12 +191,19 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
   }
 
   private func checkExtensions(_ session: UIDropSession) -> Bool {
+      let whiteListCheck = checkWhiteList(session)
+      let blackListCheck = checkBlackList(session)
+
+      return whiteListCheck && blackListCheck
+  }
+
+  private func checkWhiteList(_ session: UIDropSession) -> Bool {
       guard let extensions = self.whiteListExtensions, !extensions.isEmpty else {
           return true // if no defined -> accepts all
       }
-      
+
       let lowercasedExtensions = extensions.map { $0.lowercased() }
-      
+
       for item in session.items {
           guard let typeIdentifier = item.itemProvider.registeredTypeIdentifiers.first,
                 let unmanagedFileExtension = UTTypeCopyPreferredTagWithClass(
@@ -204,11 +213,37 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
                 let fileExtension = unmanagedFileExtension.takeRetainedValue() as String? else {
               return false
           }
+
           if !lowercasedExtensions.contains(fileExtension.lowercased()) {
               return false
           }
       }
-      
+
+      return true
+  }
+
+  private func checkBlackList(_ session: UIDropSession) -> Bool {
+      guard let extensions = self.blackListExtensions, !extensions.isEmpty else {
+          return true // if no defined -> accepts all
+      }
+
+      let lowercasedExtensions = extensions.map { $0.lowercased() }
+
+      for item in session.items {
+          guard let typeIdentifier = item.itemProvider.registeredTypeIdentifiers.first,
+                let unmanagedFileExtension = UTTypeCopyPreferredTagWithClass(
+                  typeIdentifier as CFString,
+                  kUTTagClassFilenameExtension
+                ),
+                let fileExtension = unmanagedFileExtension.takeRetainedValue() as String? else {
+              return false
+          }
+
+          if lowercasedExtensions.contains(fileExtension.lowercased()) {
+              return false
+          }
+      }
+
       return true
   }
 }

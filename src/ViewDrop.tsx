@@ -13,6 +13,7 @@ export const ViewDrop: FC<Props> = ({
   onAudioReceived,
   fileTypes,
   whiteListExtensions,
+  blackListExtensions,
   ...props
 }) => {
   const onImageReceivedEvent = (event: SyntheticEvent) => {
@@ -64,6 +65,7 @@ export const ViewDrop: FC<Props> = ({
       onVideoReceived={onVideoReceivedEvent}
       onAudioReceived={onAudioReceivedEvent}
       whiteListExtensions={whiteListExtensions}
+      blackListExtensions={blackListExtensions}
       fileTypes={fileTypes}
     >
       {children}
