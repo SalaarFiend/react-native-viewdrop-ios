@@ -12,7 +12,6 @@
 		CEE979DA2A51713A004113E5 /* VIewDropModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE979D42A517139004113E5 /* VIewDropModule.swift */; };
 		CEE979DB2A51713A004113E5 /* ViewDrop.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE979D52A517139004113E5 /* ViewDrop.swift */; };
 		CEE979DC2A51713A004113E5 /* ImageScaleExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEE979D72A51713A004113E5 /* ImageScaleExtension.swift */; };
-		F4FF95D7245B92E800C19C63 /* ViewdropIos.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF95D6245B92E800C19C63 /* ViewdropIos.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -29,7 +28,6 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libViewdropIos.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libViewdropIos.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		B3E7B5891CC2AC0600A0062D /* ViewdropIos.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewdropIos.m; sourceTree = "<group>"; };
 		CEE979D22A517139004113E5 /* ViewDropModuleBridge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewDropModuleBridge.m; sourceTree = "<group>"; };
 		CEE979D32A517139004113E5 /* ViewDropManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewDropManager.m; sourceTree = "<group>"; };
 		CEE979D42A517139004113E5 /* VIewDropModule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VIewDropModule.swift; sourceTree = "<group>"; };
@@ -37,7 +35,6 @@
 		CEE979D62A517139004113E5 /* VIewDropModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VIewDropModule.h; sourceTree = "<group>"; };
 		CEE979D72A51713A004113E5 /* ImageScaleExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageScaleExtension.swift; sourceTree = "<group>"; };
 		F4FF95D5245B92E700C19C63 /* ViewdropIos-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ViewdropIos-Bridging-Header.h"; sourceTree = "<group>"; };
-		F4FF95D6245B92E800C19C63 /* ViewdropIos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewdropIos.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,8 +65,6 @@
 				CEE979D62A517139004113E5 /* VIewDropModule.h */,
 				CEE979D42A517139004113E5 /* VIewDropModule.swift */,
 				CEE979D22A517139004113E5 /* ViewDropModuleBridge.m */,
-				F4FF95D6245B92E800C19C63 /* ViewdropIos.swift */,
-				B3E7B5891CC2AC0600A0062D /* ViewdropIos.m */,
 				F4FF95D5245B92E700C19C63 /* ViewdropIos-Bridging-Header.h */,
 				134814211AA4EA7D00B7C361 /* Products */,
 			);
@@ -137,7 +132,6 @@
 				CEE979DC2A51713A004113E5 /* ImageScaleExtension.swift in Sources */,
 				CEE979D92A51713A004113E5 /* ViewDropManager.m in Sources */,
 				CEE979DB2A51713A004113E5 /* ViewDrop.swift in Sources */,
-				F4FF95D7245B92E800C19C63 /* ViewdropIos.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -170,6 +164,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEFINES_MODULE = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				"EXCLUDED_ARCHS[sdk=*]" = arm64;
@@ -221,6 +216,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = YES;
+				DEFINES_MODULE = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				"EXCLUDED_ARCHS[sdk=*]" = arm64;

@@ -17,6 +17,7 @@ export interface ViewDropNativeModuleProps {
    * undefined means all extensions can be placed to view
    */
   fileTypes?: MimeTypes[];
+  whiteListExtensions?: string[];
 }
 
 export type Props = {
@@ -29,4 +30,5 @@ export type Props = {
    * undefined means all extensions can be placed to view
    */
   fileTypes?: MimeTypes[];
+  whiteListExtensions?: string[];
 } & ViewProps;

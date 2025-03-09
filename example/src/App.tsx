@@ -53,6 +53,7 @@ export default function App() {
         console.log('INFO AUDIO', info.fullUrl);
       }}
       fileTypes={['image', 'video']}
+      whiteListExtensions={['png', 'jpeg']}
     >
       {content}
       {!!image && (
