@@ -12,12 +12,9 @@ export interface ViewDropNativeModuleProps {
   onDropItemDetected: (event: SyntheticEvent) => void;
   onVideoReceived: (event: SyntheticEvent) => void;
   onAudioReceived: (event: SyntheticEvent) => void;
-  /**
-   * whiteListExtensions undefined by default:
-   * undefined means all extensions can be placed to view
-   */
   fileTypes?: MimeTypes[];
   whiteListExtensions?: string[];
+  blackListExtensions?: string[];
 }
 
 export type Props = {
@@ -25,10 +22,7 @@ export type Props = {
   onDropItemDetected?: () => void;
   onVideoReceived?: (videoInfo: AvAssetType) => void;
   onAudioReceived?: (audioInfo: AvAssetType) => void;
-  /**
-   * whiteListExtensions undefined by default:
-   * undefined means all extensions can be placed to view
-   */
   fileTypes?: MimeTypes[];
   whiteListExtensions?: string[];
+  blackListExtensions?: string[];
 } & ViewProps;

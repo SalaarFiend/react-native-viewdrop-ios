@@ -10,4 +10,5 @@
   RCT_EXPORT_VIEW_PROPERTY(onDropItemDetected, RCTBubblingEventBlock)
   RCT_EXPORT_VIEW_PROPERTY(fileTypes, NSArray)
   RCT_EXPORT_VIEW_PROPERTY(whiteListExtensions, NSArray)
+  RCT_EXPORT_VIEW_PROPERTY(blackListExtensions, NSArray)
 @end
