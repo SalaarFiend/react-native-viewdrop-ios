@@ -2,13 +2,34 @@
 
 ViewDrop is a module for React Native that will allow View to use a native iOS feature to transfer pictures, videos, files, and more through a simple Drag & Drop action.
 
+![Work of library GIF](./assets/WorkOfLib.gif)
+
 ## Installation
 
-```sh
+```bash
 npm install react-native-viewdrop-ios
 ```
 
+```bash
+yarn add react-native-viewdrop-ios
+```
+
+## Supported platforms
+Now this native Apple System feature only.
+
+- [x] iOS
+- [ ] macOS - on development
+
+**Platforms that will not be supported unless they have native features on them**
+- [ ] tvOS
+- [ ] visionOS
+- [ ] Android
+- [ ] Windows
+- [ ] Web
+
 ## Usage
+
+Simply wrap your view for enable iOS native feature!
 
 ```js
 import { ViewDrop } from 'react-native-viewdrop-ios';
@@ -24,6 +45,9 @@ import { ViewDrop } from 'react-native-viewdrop-ios';
     onAudioReceived={({fileName : string, fullUrl : string}) => {
       some logic with path of audio file
     }}
+    fileTypes={['image', 'audio']}
+    whiteListExtensions={['png', 'jpeg']}
+    blackListExtensions={['mp3']}
 >
   // your views
 </ViewDrop>;
@@ -133,6 +157,8 @@ import ViewDrop from 'react-native-view-drop';
 - Settings for resize images
 - Works with preview of dropping
 - Works with multiple files drop
+- MacOS supports
+- Fabric supports
 
 ## Contributing
 
