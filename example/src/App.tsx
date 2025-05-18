@@ -52,6 +52,9 @@ export default function App() {
       onAudioReceived={(info) => {
         console.log('INFO AUDIO', info.fullUrl);
       }}
+      onFileReceived={(info) => {
+        console.log('INFO FILE', info);
+      }}
       fileTypes={['image', 'audio']}
       whiteListExtensions={['png', 'jpeg']}
       blackListExtensions={['mp3']}

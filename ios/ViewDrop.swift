@@ -19,6 +19,9 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
 
   @objc(onAudioReceived)
   var onAudioReceived : RCTBubblingEventBlock?;
+  
+  @objc(onFileReceived)
+  var onFileReceived : RCTBubblingEventBlock?;
 
   @objc(onDropItemDetected)
   var onDropItemDetected : RCTBubblingEventBlock?;
@@ -26,6 +29,7 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
   private let videoType : String = kUTTypeMovie as String
   private let audioType : String = kUTTypeAudio as String
   private let imageType : String = kUTTypeImage as String
+  private let fileType : String = kUTTypeData as String
 
   private var acceptedUTTypes: [String] = []
 
@@ -47,7 +51,8 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
     self.fileTypeMapping = [
       "video": self.videoType,
       "audio": self.audioType,
-      "image": self.imageType
+      "image": self.imageType,
+      "file" : self.fileType
     ]
   }
 
@@ -72,28 +77,32 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
 
   func dropInteraction(_ interaction: UIDropInteraction, performDrop session: UIDropSession) {
     //MARK: - Image send event
-    session.loadObjects(ofClass: UIImage.self) { imageItems in
-      if self.onImageReceived != nil {
-        let images = imageItems as! [UIImage]
-        guard var oneImg = images.first else {return}
-        let widthImage = oneImg.cgImage?.width ?? 800
-        let heightImage = oneImg.cgImage?.height ?? 800
+    if(session.canLoadObjects(ofClass: UIImage.self)){
+      session.loadObjects(ofClass: UIImage.self) { imageItems in
+        if self.onImageReceived != nil {
+          let images = imageItems as! [UIImage]
+          guard var oneImg = images.first else {return}
+          let widthImage = oneImg.cgImage?.width ?? 800
+          let heightImage = oneImg.cgImage?.height ?? 800
 
-        if(widthImage > 6048 || heightImage > 4032) {
-          oneImg = oneImg.vImageScaledImageWithSize(destSize: CGSizeMake(2048, 2048),contentMode: .scaleAspectFit)
-        }
-        var base64ImgWithPrefix = "";
+          if(widthImage > 6048 || heightImage > 4032) {
+            oneImg = oneImg.vImageScaledImageWithSize(destSize: CGSizeMake(2048, 2048),contentMode: .scaleAspectFit)
+          }
+          var base64ImgWithPrefix = "";
 
-        if(self.hasAlpha(image: oneImg)){
-          guard let base64Img = oneImg.pngData()?.base64EncodedString(options: Data.Base64EncodingOptions.lineLength64Characters) else {return}
-          base64ImgWithPrefix = self.pngPrefix.appending(base64Img)
-        } else {
-          guard let base64Img = oneImg.jpegData(compressionQuality: 1.0)?.base64EncodedString(options: Data.Base64EncodingOptions.lineLength64Characters) else {return}
-          base64ImgWithPrefix = self.jpegPrefix.appending(base64Img)
+          if(self.hasAlpha(image: oneImg)){
+            guard let base64Img = oneImg.pngData()?.base64EncodedString(options: Data.Base64EncodingOptions.lineLength64Characters) else {return}
+            base64ImgWithPrefix = self.pngPrefix.appending(base64Img)
+          } else {
+            guard let base64Img = oneImg.jpegData(compressionQuality: 1.0)?.base64EncodedString(options: Data.Base64EncodingOptions.lineLength64Characters) else {return}
+            base64ImgWithPrefix = self.jpegPrefix.appending(base64Img)
+          }
+          self.onImageReceived!([ "image" : base64ImgWithPrefix ])
         }
-        self.onImageReceived!([ "image" : base64ImgWithPrefix ])
       }
+      return
     }
+    
 
     for item in session.items {
       //MARK: - Video send event
@@ -156,20 +165,38 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
         })
         return
       }
+      // MARK: - Generic file send event
+      if self.onFileReceived != nil {
+        // Берём первый доступный typeIdentifier
+        guard let typeIdentifier = item.itemProvider.registeredTypeIdentifiers.first else { continue }
+        item.itemProvider.loadFileRepresentation(forTypeIdentifier: typeIdentifier) { url, error in
+          guard let fileUrl = url else { return }
+          let fileName = fileUrl.lastPathComponent
+          let tmpDir = NSTemporaryDirectory()
+          let destUrl = URL(fileURLWithPath: tmpDir).appendingPathComponent(fileName)
+          // Копируем файл во временную папку, если нужно
+          try? FileManager.default.copyItem(at: fileUrl, to: destUrl)
+          DispatchQueue.main.async {
+            self.onFileReceived!([
+              "fileInfo": [
+                "fileName": fileName,
+                "fullUrl": destUrl.absoluteString,
+                "typeIdentifier": typeIdentifier
+              ]
+            ])
+          }
+        }
+      }
     }
   }
 
-  func canLoadTypeOfObjects (_ session: UIDropSession) -> Bool {
-    let hasTypes = session.hasItemsConforming(toTypeIdentifiers: [videoType,audioType])
-
-    return hasTypes || session.canLoadObjects(ofClass: UIImage.self)
-  }
-
+  
+  
   func dropInteraction(_ interaction: UIDropInteraction, sessionDidUpdate session: UIDropSession) -> UIDropProposal {
-    if(canLoadTypeOfObjects(session)){
+    if(checkItemsConforimng(session) && checkExtensions(session)){
       return UIDropProposal(operation: .copy)
     }
-    return UIDropProposal.init(operation: .forbidden)
+    return UIDropProposal(operation: .forbidden)
   }
 
   func dropInteraction(_ interaction: UIDropInteraction, canHandle session: UIDropSession) -> Bool {

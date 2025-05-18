@@ -1,9 +1,7 @@
-
-
 import { StyleSheet } from 'react-native';
 
 export const viewDropStyles = StyleSheet.create({
-    viewDrop: {
-        flex: 1,
-    },
+  viewDrop: {
+    flex: 1,
+  },
 });

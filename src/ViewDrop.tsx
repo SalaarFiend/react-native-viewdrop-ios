@@ -1,7 +1,7 @@
 import React, { type FC, type SyntheticEvent } from 'react';
 
 import { viewDropStyles } from './ViewDrop.styles';
-import type { Props } from './ViewDrop.types';
+import type { AvAssetType, FileInfo, Props } from './ViewDrop.types';
 import { ViewDropModule } from './ViewDropNativeModule';
 import { Platform } from 'react-native';
 
@@ -11,37 +11,52 @@ export const ViewDrop: FC<Props> = ({
   onDropItemDetected,
   onVideoReceived,
   onAudioReceived,
+  onFileReceived,
   fileTypes,
   whiteListExtensions,
   blackListExtensions,
   ...props
 }) => {
-  const onImageReceivedEvent = (event: SyntheticEvent) => {
+  const onImageReceivedEvent = (
+    event: SyntheticEvent<undefined, { image: string }>
+  ) => {
     if (!onImageReceived) {
       return;
     }
-    //@ts-ignore
     const image = event.nativeEvent?.image;
     onImageReceived(image);
   };
 
-  const onVideoReceivedEvent = (event: SyntheticEvent) => {
+  const onVideoReceivedEvent = (
+    event: SyntheticEvent<undefined, { videoInfo: AvAssetType }>
+  ) => {
     if (!onVideoReceived) {
       return;
     }
-    //@ts-ignore
+
     const videoInfo = event.nativeEvent?.videoInfo;
     onVideoReceived(videoInfo);
   };
 
-  const onAudioReceivedEvent = (event: SyntheticEvent) => {
+  const onAudioReceivedEvent = (
+    event: SyntheticEvent<undefined, { audioInfo: AvAssetType }>
+  ) => {
     if (!onAudioReceived) {
       return;
     }
 
-    //@ts-ignore
-    const audioInfo = event.nativeEvent?.audioInfo;
+    const audioInfo = event.nativeEvent.audioInfo;
     onAudioReceived(audioInfo);
+  };
+  const onFileReceivedEvent = (
+    event: SyntheticEvent<undefined, { fileInfo: FileInfo }>
+  ) => {
+    if (!onFileReceived) {
+      return;
+    }
+
+    const fileInfo = event.nativeEvent.fileInfo;
+    onFileReceived(fileInfo);
   };
 
   const onDropItemDetectedEvent = () => {
@@ -64,6 +79,7 @@ export const ViewDrop: FC<Props> = ({
       onDropItemDetected={onDropItemDetectedEvent}
       onVideoReceived={onVideoReceivedEvent}
       onAudioReceived={onAudioReceivedEvent}
+      onFileReceived={onFileReceivedEvent}
       whiteListExtensions={whiteListExtensions}
       blackListExtensions={blackListExtensions}
       fileTypes={fileTypes}
