@@ -1,7 +1,12 @@
 import React, { type FC, type SyntheticEvent } from 'react';
 
 import { viewDropStyles } from './ViewDrop.styles';
-import type { AvAssetType, FileInfo, Props } from './ViewDrop.types';
+import type {
+  AvAssetType,
+  FileInfo,
+  Props,
+  ViewDropNativeModuleProps,
+} from './ViewDrop.types';
 import { ViewDropModule } from './ViewDropNativeModule';
 import { Platform } from 'react-native';
 
@@ -12,9 +17,11 @@ export const ViewDrop: FC<Props> = ({
   onVideoReceived,
   onAudioReceived,
   onFileReceived,
+  onFileItemsReceived,
   fileTypes,
   whiteListExtensions,
   blackListExtensions,
+  isEnableMultiDropping,
   ...props
 }) => {
   const onImageReceivedEvent = (
@@ -66,6 +73,15 @@ export const ViewDrop: FC<Props> = ({
 
     onDropItemDetected();
   };
+  const onFileItemsReceivedEvent = (
+    event: Parameters<ViewDropNativeModuleProps['onFileItemsReceived']>[0]
+  ) => {
+    if (!onFileItemsReceived) {
+      return;
+    }
+    const data = event.nativeEvent.data;
+    onFileItemsReceived(data);
+  };
 
   if (Platform.OS === 'android') {
     return <>{children}</>;
@@ -83,6 +99,8 @@ export const ViewDrop: FC<Props> = ({
       whiteListExtensions={whiteListExtensions}
       blackListExtensions={blackListExtensions}
       fileTypes={fileTypes}
+      isEnableMultiDropping={isEnableMultiDropping}
+      onFileItemsReceived={onFileItemsReceivedEvent}
     >
       {children}
     </ViewDropModule>

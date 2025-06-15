@@ -9,7 +9,9 @@
   RCT_EXPORT_VIEW_PROPERTY(onAudioReceived, RCTBubblingEventBlock)
   RCT_EXPORT_VIEW_PROPERTY(onFileReceived, RCTBubblingEventBlock)
   RCT_EXPORT_VIEW_PROPERTY(onDropItemDetected, RCTBubblingEventBlock)
+  RCT_EXPORT_VIEW_PROPERTY(onFileItemsReceived, RCTBubblingEventBlock)
   RCT_EXPORT_VIEW_PROPERTY(fileTypes, NSArray)
   RCT_EXPORT_VIEW_PROPERTY(whiteListExtensions, NSArray)
   RCT_EXPORT_VIEW_PROPERTY(blackListExtensions, NSArray)
+  RCT_EXPORT_VIEW_PROPERTY(isEnableMultiDropping, BOOL)
 @end

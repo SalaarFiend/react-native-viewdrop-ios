@@ -55,9 +55,16 @@ export default function App() {
       onFileReceived={(info) => {
         console.log('INFO FILE', info);
       }}
-      fileTypes={['image', 'audio']}
-      whiteListExtensions={['png', 'jpeg']}
-      blackListExtensions={['mp3']}
+      fileTypes={['image', 'audio', 'file']}
+      // whiteListExtensions={['png', 'jpeg']}
+      // blackListExtensions={['mp3']}
+      isEnableMultiDropping
+      onFileItemsReceived={(info) => {
+        console.log('INFO INFO', info);
+        if (info.video) {
+          setVideoSource(info.video[0].fileUrl);
+        }
+      }}
     >
       {content}
       {!!image && (

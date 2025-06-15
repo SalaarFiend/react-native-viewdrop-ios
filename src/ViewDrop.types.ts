@@ -14,6 +14,13 @@ export type FileInfo = {
   typeIdentifier: string;
 };
 
+export enum MapKeysMultiItems {
+  video = 'video',
+  audio = 'audio',
+  image = 'image',
+  otherFiles = 'otherFiles',
+}
+
 export interface ViewDropNativeModuleProps {
   onImageReceived: (
     event: SyntheticEvent<undefined, { image: string }>
@@ -28,9 +35,16 @@ export interface ViewDropNativeModuleProps {
   onFileReceived: (
     event: SyntheticEvent<undefined, { fileInfo: FileInfo }>
   ) => void;
+  onFileItemsReceived: (
+    event: SyntheticEvent<
+      undefined,
+      { data: Record<MapKeysMultiItems, FileInfo[]> }
+    >
+  ) => void;
   fileTypes?: MimeTypes[];
   whiteListExtensions?: string[];
   blackListExtensions?: string[];
+  isEnableMultiDropping?: boolean;
 }
 
 export type Props = {
@@ -39,7 +53,9 @@ export type Props = {
   onVideoReceived?: (videoInfo: AvAssetType) => void;
   onAudioReceived?: (audioInfo: AvAssetType) => void;
   onFileReceived?: (audioInfo: FileInfo) => void;
+  onFileItemsReceived?: (data: Record<MapKeysMultiItems, FileInfo[]>) => void;
   fileTypes?: MimeTypes[];
   whiteListExtensions?: string[];
   blackListExtensions?: string[];
+  isEnableMultiDropping?: boolean;
 } & ViewProps;
