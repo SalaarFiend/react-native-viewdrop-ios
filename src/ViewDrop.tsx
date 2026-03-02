@@ -1,14 +1,15 @@
-import React, { type FC, type SyntheticEvent } from 'react';
+import React, { type FC } from 'react';
+import { Platform, type NativeSyntheticEvent } from 'react-native';
 
 import { viewDropStyles } from './ViewDrop.styles';
-import type {
-  AvAssetType,
-  FileInfo,
-  Props,
-  ViewDropNativeModuleProps,
+import {
+  MapKeysMultiItems,
+  type AvAssetType,
+  type FileInfo,
+  type Props,
+  type ViewDropNativeModuleProps,
 } from './ViewDrop.types';
 import { ViewDropModule } from './ViewDropNativeModule';
-import { Platform } from 'react-native';
 
 export const ViewDrop: FC<Props> = ({
   children,
@@ -33,7 +34,7 @@ export const ViewDrop: FC<Props> = ({
     mode: imageResizeMode = 'aspectFit',
   } = imageResize ?? {};
   const onImageReceivedEvent = (
-    event: SyntheticEvent<undefined, { image: string }>
+    event: NativeSyntheticEvent<{ image: string }>
   ) => {
     if (!onImageReceived) {
       return;
@@ -43,7 +44,7 @@ export const ViewDrop: FC<Props> = ({
   };
 
   const onVideoReceivedEvent = (
-    event: SyntheticEvent<undefined, { videoInfo: AvAssetType }>
+    event: NativeSyntheticEvent<{ videoInfo: AvAssetType }>
   ) => {
     if (!onVideoReceived) {
       return;
@@ -54,7 +55,7 @@ export const ViewDrop: FC<Props> = ({
   };
 
   const onAudioReceivedEvent = (
-    event: SyntheticEvent<undefined, { audioInfo: AvAssetType }>
+    event: NativeSyntheticEvent<{ audioInfo: AvAssetType }>
   ) => {
     if (!onAudioReceived) {
       return;
@@ -64,7 +65,7 @@ export const ViewDrop: FC<Props> = ({
     onAudioReceived(audioInfo);
   };
   const onFileReceivedEvent = (
-    event: SyntheticEvent<undefined, { fileInfo: FileInfo }>
+    event: NativeSyntheticEvent<{ fileInfo: FileInfo }>
   ) => {
     if (!onFileReceived) {
       return;
@@ -87,8 +88,23 @@ export const ViewDrop: FC<Props> = ({
     if (!onFileItemsReceived) {
       return;
     }
-    console.log('onFileItemsReceived', event.nativeEvent);
-    const data = event.nativeEvent.data;
+    const parsed = JSON.parse(event.nativeEvent.data) as Record<
+      string,
+      FileInfo[]
+    >;
+    const data = {} as Record<MapKeysMultiItems, FileInfo[]>;
+    if (parsed.image?.length) {
+      data[MapKeysMultiItems.image] = parsed.image;
+    }
+    if (parsed.video?.length) {
+      data[MapKeysMultiItems.video] = parsed.video;
+    }
+    if (parsed.audio?.length) {
+      data[MapKeysMultiItems.audio] = parsed.audio;
+    }
+    if (parsed.file?.length) {
+      data[MapKeysMultiItems.file] = parsed.file;
+    }
     onFileItemsReceived(data);
   };
 

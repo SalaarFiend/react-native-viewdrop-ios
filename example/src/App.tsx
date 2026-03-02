@@ -4,6 +4,7 @@ import {
   ViewDrop,
   type MapKeysMultiItems,
   type FileInfo,
+  type MimeTypes,
 } from 'react-native-viewdrop-ios';
 //@ts-ignore
 import Video from 'react-native-video';
@@ -99,6 +100,7 @@ export default function App() {
   // ── Shared helpers ─────────────────────────────────────────────────────────
 
   const reset = () => {
+    console.log('RESET?');
     setImage('');
     setVideoSource('');
     setDroppedItems([]);
@@ -238,7 +240,7 @@ export default function App() {
         // If ANY dropped file is not a PNG/JPEG image, the whole session is rejected.
         return {
           isEnableMultiDropping: true,
-          fileTypes: ['image'],
+          fileTypes: ['image'] as MimeTypes[],
           whiteListExtensions: ['png', 'jpg', 'jpeg'],
         };
 
@@ -248,7 +250,7 @@ export default function App() {
         return {
           isEnableMultiDropping: true,
           allowPartialDrop: true,
-          fileTypes: ['image'],
+          fileTypes: ['image'] as MimeTypes[],
           whiteListExtensions: ['png', 'jpg', 'jpeg'],
         };
 
@@ -257,7 +259,7 @@ export default function App() {
         // If ANY dropped file is HEIC (or not an image), the whole session is rejected.
         return {
           isEnableMultiDropping: true,
-          fileTypes: ['image'],
+          fileTypes: ['image'] as MimeTypes[],
           blackListExtensions: ['heic', 'heif'],
         };
 
@@ -267,7 +269,7 @@ export default function App() {
         return {
           isEnableMultiDropping: true,
           allowPartialDrop: true,
-          fileTypes: ['image'],
+          fileTypes: ['image'] as MimeTypes[],
           blackListExtensions: ['heic', 'heif'],
         };
 

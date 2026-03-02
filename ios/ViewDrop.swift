@@ -225,8 +225,11 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
           // Когда обработка файлов завершена, передаем результат обратно в основной поток
           DispatchQueue.main.async {
             NSLog("DROP_INTERACTION_VIEWDROP: SEND FILES")
-              // Передаем файлы в onFileItemsReceived, если он задан
-            self.onFileItemsReceived?([ "data" : groupedFiles ])
+              // Сериализуем файлы в JSON-строку для совместимости с codegen
+            if let jsonData = try? JSONSerialization.data(withJSONObject: groupedFiles, options: []),
+               let jsonString = String(data: jsonData, encoding: .utf8) {
+              self.onFileItemsReceived?(["data": jsonString])
+            }
           }
       }
   }
@@ -372,7 +375,7 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
           self.onFileReceived!([
             "fileInfo": [
               "fileName": fileName,
-              "fullUrl": destUrl.absoluteString,
+              "fileUrl": destUrl.absoluteString,
               "typeIdentifier": typeIdentifier
             ]
           ])

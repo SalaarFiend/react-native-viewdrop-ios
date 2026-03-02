@@ -1,5 +1,4 @@
-import { type SyntheticEvent } from 'react';
-import { type ViewProps } from 'react-native';
+import { type NativeSyntheticEvent, type ViewProps } from 'react-native';
 
 export type AvAssetType = {
   fullUrl: string;
@@ -29,25 +28,16 @@ export type ImageResizeConfig = {
 };
 
 export interface ViewDropNativeModuleProps {
-  onImageReceived: (
-    event: SyntheticEvent<undefined, { image: string }>
-  ) => void;
-  onDropItemDetected: (event: SyntheticEvent) => void;
+  onImageReceived: (event: NativeSyntheticEvent<{ image: string }>) => void;
+  onDropItemDetected: (event: NativeSyntheticEvent<{}>) => void;
   onVideoReceived: (
-    event: SyntheticEvent<undefined, { videoInfo: AvAssetType }>
+    event: NativeSyntheticEvent<{ videoInfo: AvAssetType }>
   ) => void;
   onAudioReceived: (
-    event: SyntheticEvent<undefined, { audioInfo: AvAssetType }>
+    event: NativeSyntheticEvent<{ audioInfo: AvAssetType }>
   ) => void;
-  onFileReceived: (
-    event: SyntheticEvent<undefined, { fileInfo: FileInfo }>
-  ) => void;
-  onFileItemsReceived: (
-    event: SyntheticEvent<
-      undefined,
-      { data: Record<MapKeysMultiItems, FileInfo[]> }
-    >
-  ) => void;
+  onFileReceived: (event: NativeSyntheticEvent<{ fileInfo: FileInfo }>) => void;
+  onFileItemsReceived: (event: NativeSyntheticEvent<{ data: string }>) => void;
   fileTypes?: MimeTypes[];
   whiteListExtensions?: string[];
   blackListExtensions?: string[];

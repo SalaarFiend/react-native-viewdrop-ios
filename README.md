@@ -6,6 +6,12 @@ ViewDrop is a React Native module that turns any `View` into a native iOS drag-a
 
 ---
 
+## Requirements
+
+- React Native >= 0.71.0
+- iOS >= 13.0
+- Supports both Old Architecture and **New Architecture (Fabric)**
+
 ## Installation
 
 ```bash
@@ -14,13 +20,17 @@ npm install react-native-viewdrop-ios
 yarn add react-native-viewdrop-ios
 ```
 
+For **New Architecture** projects, no extra setup is needed — the library auto-detects Fabric.
+
+For projects using `use_modular_headers!` in their Podfile (common with New Arch), ensure it's set globally or for this pod.
+
 ---
 
 ## Supported platforms
 
 | Platform | Status |
 |----------|--------|
-| iOS | ✅ Supported |
+| iOS | ✅ Supported (Old Arch + Fabric) |
 | macOS | 🚧 In development |
 | Android / Web / tvOS / visionOS | ❌ Not planned |
 
@@ -438,7 +448,6 @@ Drop an image → it is scaled down to fit within 800×800 px (aspectFit) and JP
 
 - Drop preview / badge customisation
 - macOS support
-- Fabric / New Architecture support
 
 ---
 
