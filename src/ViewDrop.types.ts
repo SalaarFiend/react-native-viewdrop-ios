@@ -18,7 +18,7 @@ export enum MapKeysMultiItems {
   video = 'video',
   audio = 'audio',
   image = 'image',
-  otherFiles = 'otherFiles',
+  file = 'file',
 }
 
 export interface ViewDropNativeModuleProps {
@@ -45,6 +45,7 @@ export interface ViewDropNativeModuleProps {
   whiteListExtensions?: string[];
   blackListExtensions?: string[];
   isEnableMultiDropping?: boolean;
+  allowPartialDrop?: boolean;
 }
 
 export type Props = {
@@ -58,4 +59,11 @@ export type Props = {
   whiteListExtensions?: string[];
   blackListExtensions?: string[];
   isEnableMultiDropping?: boolean;
+  /**
+   * @default false
+   * @description
+   * When `isEnableMultiDropping` is true, allows the drop session to always be accepted.
+   * Files are filtered individually at drop time using blackListExtensions, whiteListExtensions, and fileTypes.
+   */
+  allowPartialDrop?: boolean;
 } & ViewProps;

@@ -14,4 +14,5 @@
   RCT_EXPORT_VIEW_PROPERTY(whiteListExtensions, NSArray)
   RCT_EXPORT_VIEW_PROPERTY(blackListExtensions, NSArray)
   RCT_EXPORT_VIEW_PROPERTY(isEnableMultiDropping, BOOL)
+  RCT_EXPORT_VIEW_PROPERTY(allowPartialDrop, BOOL)
 @end

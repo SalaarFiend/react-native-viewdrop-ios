@@ -22,6 +22,7 @@ export const ViewDrop: FC<Props> = ({
   whiteListExtensions,
   blackListExtensions,
   isEnableMultiDropping,
+  allowPartialDrop,
   ...props
 }) => {
   const onImageReceivedEvent = (
@@ -79,6 +80,7 @@ export const ViewDrop: FC<Props> = ({
     if (!onFileItemsReceived) {
       return;
     }
+    console.log('onFileItemsReceived', event.nativeEvent);
     const data = event.nativeEvent.data;
     onFileItemsReceived(data);
   };
@@ -100,6 +102,7 @@ export const ViewDrop: FC<Props> = ({
       blackListExtensions={blackListExtensions}
       fileTypes={fileTypes}
       isEnableMultiDropping={isEnableMultiDropping}
+      allowPartialDrop={allowPartialDrop}
       onFileItemsReceived={onFileItemsReceivedEvent}
     >
       {children}

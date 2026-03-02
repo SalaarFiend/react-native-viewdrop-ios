@@ -1,82 +1,336 @@
 import * as React from 'react';
-
-import { StyleSheet, Text, Image, TouchableOpacity } from 'react-native';
-import { ViewDrop } from 'react-native-viewdrop-ios';
+import { StyleSheet, Text, Image, TouchableOpacity, View } from 'react-native';
+import {
+  ViewDrop,
+  type MapKeysMultiItems,
+  type FileInfo,
+} from 'react-native-viewdrop-ios';
 //@ts-ignore
 import Video from 'react-native-video';
+
+const TYPE_SCENARIO = {
+  // ── Single-file mode ──────────────────────────────────────────────────────
+  Single: 'single',
+
+  // ── Multi-file, no filters ────────────────────────────────────────────────
+  Multi: 'multi',
+
+  // ── Multi-file + blacklist only ───────────────────────────────────────────
+  // Strict:  any blacklisted file → whole session rejected (red icon)
+  MultiBlacklistStrict: 'multi-blacklist-strict',
+  // Partial: blacklisted files silently removed, rest arrives normally
+  MultiBlackListPartial: 'multi-blacklist-partial',
+
+  // ── Multi-file + whitelist only ───────────────────────────────────────────
+  // Strict:  every file must be in whitelist, else whole session rejected
+  MultiWhiteListStrict: 'multi-whitelist-strict',
+  // Partial: only whitelisted files arrive, rest silently removed
+  MultiWhiteListPartial: 'multi-whitelist-partial',
+
+  // ── Multi-file + fileTypes + whitelist ────────────────────────────────────
+  // fileTypes pre-filters by broad Apple UTType category (image/video/audio/file).
+  // whiteListExtensions further narrows to specific extensions within that category.
+  // Strict:  session rejected if any file fails either filter
+  FileTypesWhiteListStrict: 'filetypes-whitelist-strict',
+  // Partial: per-file — only files passing both filters reach the callback
+  FileTypesWhiteListPartial: 'filetypes-whitelist-partial',
+
+  // ── Multi-file + fileTypes + blacklist ────────────────────────────────────
+  // fileTypes limits accepted category; blacklist blocks specific extensions inside it.
+  // Strict:  session rejected if any file fails either filter
+  FileTypesBlackListStrict: 'filetypes-blacklist-strict',
+  // Partial: per-file — blacklisted extensions removed, rest of the category passes
+  FileTypesBlackListPartial: 'filetypes-blacklist-partial',
+} as const;
+
+type Scenario = (typeof TYPE_SCENARIO)[keyof typeof TYPE_SCENARIO];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DEMO CONFIGURATION — uncomment ONE line to activate a scenario
+// ─────────────────────────────────────────────────────────────────────────────
+
+// A — Single file: image/video/audio/file each fires its own callback
+// const SCENARIO: Scenario = TYPE_SCENARIO.Single;
+
+// B — Multi-drop: any file, no filters
+// const SCENARIO: Scenario = TYPE_SCENARIO.Multi;
+
+// C — Multi-drop + blacklist (strict)
+// const SCENARIO: Scenario = TYPE_SCENARIO.MultiBlacklistStrict;
+
+// D — Multi-drop + blacklist + allowPartialDrop
+const SCENARIO: Scenario = TYPE_SCENARIO.MultiBlackListPartial;
+
+// E — Multi-drop + whitelist (strict)
+// const SCENARIO: Scenario = TYPE_SCENARIO.MultiWhiteListStrict;
+
+// F — Multi-drop + whitelist + allowPartialDrop
+// const SCENARIO: Scenario = TYPE_SCENARIO.MultiWhiteListPartial;
+
+// G — fileTypes + whitelist (strict): only PNG/JPEG images, session-level
+// const SCENARIO: Scenario = TYPE_SCENARIO.FileTypesWhiteListStrict;
+
+// H — fileTypes + whitelist + allowPartialDrop: PNG/JPEG images filtered per-file
+// const SCENARIO: Scenario = TYPE_SCENARIO.FileTypesWhiteListPartial;
+
+// I — fileTypes + blacklist (strict): images only, HEIC blocked at session level
+// const SCENARIO: Scenario = TYPE_SCENARIO.FileTypesBlackListStrict;
+
+// J — fileTypes + blacklist + allowPartialDrop: images only, HEIC removed per-file
+// const SCENARIO: Scenario = TYPE_SCENARIO.FileTypesBlackListPartial;
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+type DroppedItem = { label: string; url: string };
 
 export default function App() {
   const [image, setImage] = React.useState('');
   const [videoSource, setVideoSource] = React.useState('');
+  const [droppedItems, setDroppedItems] = React.useState<DroppedItem[]>([]);
+  const [hint, setHint] = React.useState('Drop a file here');
 
-  const content = React.useMemo(() => {
+  // ── Shared helpers ─────────────────────────────────────────────────────────
+
+  const reset = () => {
+    setImage('');
+    setVideoSource('');
+    setDroppedItems([]);
+    setHint('Drop a file here');
+  };
+
+  // Called when a drop session begins (any scenario).
+  const handleDropDetected = () => {
+    setHint('Receiving…');
+    console.log('[ViewDrop] drop session started');
+  };
+
+  // ── Single-file callbacks ──────────────────────────────────────────────────
+
+  // Returns the image as a base64 data-URI string.
+  const handleImageReceived = (base64: string) => {
+    console.log('[ViewDrop] image received (base64 length):', base64.length);
+    setImage(base64);
+    setHint('Image received');
+  };
+
+  // Returns { fileName, fullUrl } — a temporary file path on disk.
+  const handleVideoReceived = (info: { fileName: string; fullUrl: string }) => {
+    console.log('[ViewDrop] video received:', info.fileName, info.fullUrl);
+    setVideoSource(info.fullUrl);
+    setHint(`Video: ${info.fileName}`);
+  };
+
+  // Returns { fileName, fullUrl } — same shape as video.
+  const handleAudioReceived = (info: { fileName: string; fullUrl: string }) => {
+    console.log('[ViewDrop] audio received:', info.fileName, info.fullUrl);
+    setHint(`Audio: ${info.fileName}`);
+  };
+
+  // Fallback for any file type not covered by the callbacks above.
+  // Returns { fileName, fileUrl, typeIdentifier }.
+  const handleFileReceived = (info: FileInfo) => {
+    console.log('[ViewDrop] generic file received:', info);
+    setDroppedItems([{ label: info.fileName, url: info.fileUrl }]);
+    setHint(`File: ${info.fileName}`);
+  };
+
+  // ── Multi-file callback ────────────────────────────────────────────────────
+
+  // Fires when isEnableMultiDropping=true (for any number of files, including 1).
+  // `data` is a dictionary keyed by file category: image | video | audio | file.
+  // Each value is an array of { fileName, fileUrl, typeIdentifier }.
+  const handleFileItemsReceived = (
+    data: Record<MapKeysMultiItems, FileInfo[]>
+  ) => {
+    console.log(
+      '[ViewDrop] multi-drop received:',
+      JSON.stringify(data, null, 2)
+    );
+
+    const items: DroppedItem[] = [];
+
+    if (data.image) {
+      data.image.forEach((f) =>
+        items.push({ label: `🖼 ${f.fileName}`, url: f.fileUrl })
+      );
+      // Show the first image if present
+      setImage('');
+    }
+    if (data.video) {
+      data.video.forEach((f) =>
+        items.push({ label: `🎬 ${f.fileName}`, url: f.fileUrl })
+      );
+      setVideoSource(data.video[0]!.fileUrl);
+    }
+    if (data.audio) {
+      data.audio.forEach((f) =>
+        items.push({ label: `🎵 ${f.fileName}`, url: f.fileUrl })
+      );
+    }
+    if (data.file) {
+      data.file.forEach((f) =>
+        items.push({ label: `📄 ${f.fileName}`, url: f.fileUrl })
+      );
+    }
+
+    setDroppedItems(items);
+    setHint(`Received ${items.length} file(s)`);
+  };
+
+  // ── Scenario props ─────────────────────────────────────────────────────────
+
+  const scenarioProps = (() => {
+    switch (SCENARIO) {
+      case TYPE_SCENARIO.Single:
+        // No isEnableMultiDropping → single-file mode.
+        // Each file type fires its own callback.
+        return {};
+
+      case TYPE_SCENARIO.Multi:
+        // Accept any file; all results go to onFileItemsReceived.
+        return { isEnableMultiDropping: true };
+
+      case TYPE_SCENARIO.MultiBlacklistStrict:
+        // Strict: if any file in the drag has a blacklisted extension,
+        // the entire drop session shows a red "forbidden" indicator.
+        return {
+          isEnableMultiDropping: true,
+          blackListExtensions: ['exe', 'bat', 'sh', 'cmd'],
+        };
+
+      case TYPE_SCENARIO.MultiBlackListPartial:
+        // Partial: drop is always accepted visually.
+        // Blacklisted files are removed from the result silently.
+        // Good for mixed drops where the user might include unwanted files.
+        return {
+          isEnableMultiDropping: true,
+          allowPartialDrop: true,
+          blackListExtensions: ['exe', 'bat', 'sh', 'cmd'],
+        };
+
+      case TYPE_SCENARIO.MultiWhiteListStrict:
+        // Strict: EVERY file in the drag must match the whitelist.
+        // Even a single non-matching file causes the whole session to be rejected.
+        return {
+          isEnableMultiDropping: true,
+          whiteListExtensions: ['pdf', 'docx', 'txt'],
+        };
+
+      case TYPE_SCENARIO.MultiWhiteListPartial:
+        // Partial: drop is always accepted.
+        // Only files whose extension is in the whitelist reach onFileItemsReceived.
+        return {
+          isEnableMultiDropping: true,
+          allowPartialDrop: true,
+          whiteListExtensions: ['pdf', 'docx', 'txt'],
+        };
+
+      case TYPE_SCENARIO.FileTypesWhiteListStrict:
+        // fileTypes='image' accepts only image UTTypes at the session level.
+        // whiteListExtensions further restricts to PNG and JPEG only.
+        // If ANY dropped file is not a PNG/JPEG image, the whole session is rejected.
+        return {
+          isEnableMultiDropping: true,
+          fileTypes: ['image'],
+          whiteListExtensions: ['png', 'jpg', 'jpeg'],
+        };
+
+      case TYPE_SCENARIO.FileTypesWhiteListPartial:
+        // Same combination but per-file: drop is always accepted.
+        // Only PNG/JPEG images reach onFileItemsReceived; other files are removed silently.
+        return {
+          isEnableMultiDropping: true,
+          allowPartialDrop: true,
+          fileTypes: ['image'],
+          whiteListExtensions: ['png', 'jpg', 'jpeg'],
+        };
+
+      case TYPE_SCENARIO.FileTypesBlackListStrict:
+        // fileTypes='image' limits to images; blacklist blocks HEIC specifically.
+        // If ANY dropped file is HEIC (or not an image), the whole session is rejected.
+        return {
+          isEnableMultiDropping: true,
+          fileTypes: ['image'],
+          blackListExtensions: ['heic', 'heif'],
+        };
+
+      case TYPE_SCENARIO.FileTypesBlackListPartial:
+        // Same combination but per-file: drop is always accepted.
+        // HEIC images are removed from the result; other image formats pass through.
+        return {
+          isEnableMultiDropping: true,
+          allowPartialDrop: true,
+          fileTypes: ['image'],
+          blackListExtensions: ['heic', 'heif'],
+        };
+
+      default:
+        return {};
+    }
+  })();
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+
+  const preview = (() => {
     if (image) {
       return (
         <Image
           source={{ uri: image.replace(/(\r\n|\n|\r)/gm, '') }}
-          style={{
-            width: '80%',
-            height: '70%',
-            borderWidth: 1,
-            borderColor: 'pink',
-          }}
-        />
-      );
-    } else if (videoSource) {
-      // some video showing
-      return (
-        <Video
-          source={{ uri: videoSource }}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            right: 0,
-          }}
+          style={styles.preview}
+          resizeMode="contain"
         />
       );
     }
-    return <Text>Drop Here Image or Video or Audio</Text>;
-  }, [image, videoSource]);
+    if (videoSource) {
+      return (
+        <Video
+          source={{ uri: videoSource }}
+          style={StyleSheet.absoluteFill}
+          resizeMode="contain"
+        />
+      );
+    }
+    return null;
+  })();
 
   return (
     <ViewDrop
       style={styles.container}
-      onImageReceived={setImage}
-      onDropItemDetected={() => console.log('DROP START')}
-      onVideoReceived={(info) => {
-        console.log('INFO VIDEO', info.fullUrl);
-        setVideoSource(info.fullUrl);
-      }}
-      onAudioReceived={(info) => {
-        console.log('INFO AUDIO', info.fullUrl);
-      }}
-      onFileReceived={(info) => {
-        console.log('INFO FILE', info);
-      }}
-      fileTypes={['image', 'audio', 'file']}
-      // whiteListExtensions={['png', 'jpeg']}
-      // blackListExtensions={['mp3']}
-      isEnableMultiDropping
-      onFileItemsReceived={(info) => {
-        console.log('INFO INFO', info);
-        if (info.video) {
-          setVideoSource(info.video[0].fileUrl);
-        }
-      }}
+      // ── Scenario-specific props (see switch above) ──
+      {...scenarioProps}
+      // ── Drop start indicator ──
+      onDropItemDetected={handleDropDetected}
+      // ── Single-file callbacks (active when isEnableMultiDropping is false) ──
+      onImageReceived={handleImageReceived}
+      onVideoReceived={handleVideoReceived}
+      onAudioReceived={handleAudioReceived}
+      onFileReceived={handleFileReceived}
+      // ── Multi-file callback (active when isEnableMultiDropping is true) ──
+      onFileItemsReceived={handleFileItemsReceived}
     >
-      {content}
-      {!!image && (
-        <TouchableOpacity onPress={() => setImage('')}>
-          <Text>Delete Image</Text>
-        </TouchableOpacity>
+      {/* Preview area */}
+      <View style={styles.previewArea}>
+        {preview ?? <Text style={styles.hint}>{hint}</Text>}
+      </View>
+
+      {/* File list for multi-drop results */}
+      {droppedItems.length > 0 && (
+        <View style={styles.list}>
+          {droppedItems.map((item, i) => (
+            <Text key={i} style={styles.listItem} numberOfLines={1}>
+              {item.label}
+            </Text>
+          ))}
+        </View>
       )}
-      {!!videoSource && (
-        <TouchableOpacity onPress={() => setVideoSource('')}>
-          <Text>Delete Video</Text>
-        </TouchableOpacity>
-      )}
+
+      {/* Scenario label */}
+      <Text style={styles.scenarioLabel}>Scenario: {SCENARIO}</Text>
+
+      {/* Reset button */}
+      <TouchableOpacity style={styles.resetBtn} onPress={reset}>
+        <Text style={styles.resetText}>Reset</Text>
+      </TouchableOpacity>
     </ViewDrop>
   );
 }
@@ -86,11 +340,51 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'grey',
+    backgroundColor: '#2c2c2e',
   },
-  box: {
-    width: 60,
-    height: 60,
-    marginVertical: 20,
+  previewArea: {
+    width: '80%',
+    height: '50%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#636366',
+    borderRadius: 12,
+    borderStyle: 'dashed',
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  preview: {
+    width: '100%',
+    height: '100%',
+  },
+  hint: {
+    color: '#aeaeb2',
+    fontSize: 16,
+  },
+  list: {
+    width: '80%',
+    maxHeight: 160,
+    marginBottom: 12,
+  },
+  listItem: {
+    color: '#f2f2f7',
+    fontSize: 13,
+    paddingVertical: 3,
+  },
+  scenarioLabel: {
+    color: '#636366',
+    fontSize: 12,
+    marginBottom: 12,
+  },
+  resetBtn: {
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    backgroundColor: '#3a3a3c',
+    borderRadius: 8,
+  },
+  resetText: {
+    color: '#f2f2f7',
+    fontSize: 14,
   },
 });

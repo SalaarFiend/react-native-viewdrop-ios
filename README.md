@@ -1,164 +1,388 @@
 # react-native-viewdrop-ios
 
-ViewDrop is a module for React Native that will allow View to use a native iOS feature to transfer pictures, videos, files, and more through a simple Drag & Drop action.
+ViewDrop is a React Native module that turns any `View` into a native iOS drag-and-drop target. Drop images, videos, audio, documents, or any other file — one at a time or in batches.
 
 ![Work of library GIF](./assets/WorkOfLib.gif)
+
+---
 
 ## Installation
 
 ```bash
 npm install react-native-viewdrop-ios
-```
-
-```bash
+# or
 yarn add react-native-viewdrop-ios
 ```
 
+---
+
 ## Supported platforms
-Now this native Apple System feature only.
 
-- [x] iOS
-- [ ] macOS - on development
+| Platform | Status |
+|----------|--------|
+| iOS | ✅ Supported |
+| macOS | 🚧 In development |
+| Android / Web / tvOS / visionOS | ❌ Not planned |
 
-**Platforms that will not be supported unless they have native features on them**
-- [ ] tvOS
-- [ ] visionOS
-- [ ] Android
-- [ ] Windows
-- [ ] Web
+---
 
-## Usage
+## Quick start
 
-Simply wrap your view for enable iOS native feature!
-
-```js
+```tsx
 import { ViewDrop } from 'react-native-viewdrop-ios';
 
-// ...
-
-<ViewDrop style={styles.container}
-    onImageReceived={setImage}
-    onDropItemDetected={() => some logic for start dropping}
-    onVideoReceived={({fileName : string, fullUrl : string}) => {
-      some logic with path of video file
-    }}
-    onAudioReceived={({fileName : string, fullUrl : string}) => {
-      some logic with path of audio file
-    }}
-    fileTypes={['image', 'audio']}
-    whiteListExtensions={['png', 'jpeg']}
-    blackListExtensions={['mp3']}
+<ViewDrop
+  style={{ flex: 1 }}
+  onImageReceived={(base64) => console.log(base64)}
+  onDropItemDetected={() => console.log('drag started')}
 >
-  // your views
-</ViewDrop>;
+  <Text>Drop files here</Text>
+</ViewDrop>
 ```
 
-| Prop             | Description                     |
-| ------------------ | ------------------------------- |
-| onImageReceived    | ( image : base64_string ) => void |
-| onDropItemDetected | () => void                      |
-| onVideoReceived    | ( fileName : string, fullUrl : string ) => void                      |
-| onAudioReceived    | ( fileName : string, fullUrl : string ) => void                      |
-| fileTypes          | 'image' ,'video','audio'       |
-| whiteListExtensions          | string[]       |
-| blackListExtensions          | string[]       |
-
+---
 
 ## Props
 
-### fileTypes
-Array of allowed file types. Supports following values:
-- `'image'` - allows image files
-- `'video'` - allows video files
-- `'audio'` - allows audio files
+### Event callbacks
 
-```typescript
-fileTypes?: ('image' | 'video' | 'audio')[]
+| Prop | Type | Description |
+|------|------|-------------|
+| `onDropItemDetected` | `() => void` | Fires when a drag session enters the view. Use it to animate the drop zone. |
+| `onImageReceived` | `(image: string) => void` | Fires when a single image is dropped. `image` is a base64 data-URI. Only active when `isEnableMultiDropping` is **false**. |
+| `onVideoReceived` | `({ fileName, fullUrl }) => void` | Fires when a single video is dropped. `fullUrl` is a temporary file path. Only active when `isEnableMultiDropping` is **false**. |
+| `onAudioReceived` | `({ fileName, fullUrl }) => void` | Fires when a single audio file is dropped. Only active when `isEnableMultiDropping` is **false**. |
+| `onFileReceived` | `({ fileName, fileUrl, typeIdentifier }) => void` | Fires for any other file type (PDF, ZIP, etc.) dropped as a single item. Only active when `isEnableMultiDropping` is **false**. |
+| `onFileItemsReceived` | `(data: Record<'image'\|'video'\|'audio'\|'file', FileInfo[]>) => void` | Fires when `isEnableMultiDropping` is **true**. Contains all dropped files grouped by category. Works for single-file drops too. |
+
+### Filter props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `fileTypes` | `('image' \| 'video' \| 'audio' \| 'file')[]` | all | Accepted file categories. Uses Apple's UTType system under the hood. |
+| `whiteListExtensions` | `string[]` | — | Only files whose extension is in this list are accepted. |
+| `blackListExtensions` | `string[]` | — | Files whose extension is in this list are rejected. |
+| `isEnableMultiDropping` | `boolean` | `false` | Routes all drops (including single-file) through `onFileItemsReceived`. |
+| `allowPartialDrop` | `boolean` | `false` | Requires `isEnableMultiDropping`. Changes filter behaviour from session-level to per-file (see below). |
+
+---
+
+## Filtering in depth
+
+### Session-level vs per-file filtering
+
+By default (`allowPartialDrop = false`) filtering is **session-level**: the entire drop is either accepted or rejected as a unit. If any single dragged item fails a filter, the whole session is rejected and iOS shows a red "forbidden" indicator.
+
+When `allowPartialDrop = true` filtering becomes **per-file**: the drop session is always accepted visually, but individual files that fail the filters are silently removed from the result. This is useful when users drag a mixed batch of files.
+
+```
+allowPartialDrop = false (default)          allowPartialDrop = true
+─────────────────────────────────           ─────────────────────────────────
+[a.pdf, b.exe, c.docx]                      [a.pdf, b.exe, c.docx]
+     blackList = ['exe']                          blackList = ['exe']
+            │                                            │
+     ┌──────▼──────┐                          ┌──────────▼──────────┐
+     │  any .exe?  │                          │  filter per file    │
+     └──────┬──────┘                          │  a.pdf → ✅ pass    │
+           yes                                │  b.exe → ❌ skip    │
+            │                                 │  c.docx → ✅ pass   │
+     ┌──────▼───────┐                         └──────────┬──────────┘
+     │  FORBIDDEN   │                                    │
+     │  (grey icon) │                onFileItemsReceived({ file: [a.pdf, c.docx] })
+     └──────────────┘
 ```
 
-### whiteListExtensions
-Array of allowed file extensions. Only files with specified extensions will be accepted. If not provided, all extensions are allowed (within fileTypes constraints if specified).
+### `fileTypes`
 
-```typescript
-whiteListExtensions?: string[]
+Filters by Apple UTType category. If not specified, all types are accepted.
+
+```tsx
+// Accept only images and generic documents
+<ViewDrop fileTypes={['image', 'file']} ... />
 ```
 
-### blackListExtensions
-Array of forbidden file extensions. Files with specified extensions will be rejected. If not provided, no extensions are blocked.
+### `whiteListExtensions` — allow-list
 
-```typescript
-blackListExtensions?: string[]
+Only files whose extension is in the list pass. All other extensions are blocked.
+
+```tsx
+// Accept only PDF, DOCX, and TXT files
+<ViewDrop whiteListExtensions={['pdf', 'docx', 'txt']} ... />
 ```
+
+With `allowPartialDrop`: non-matching files are silently dropped from the result instead of rejecting the whole session.
+
+### `blackListExtensions` — block-list
+
+Files whose extension matches the list are rejected. All other extensions pass.
+
+```tsx
+// Block executables and shell scripts
+<ViewDrop blackListExtensions={['exe', 'bat', 'sh', 'cmd']} ... />
+```
+
+With `allowPartialDrop`: matching files are removed from the result; the rest are delivered normally.
+
+### Combining filters
+
+All active filters are applied together with **AND** logic. A file must satisfy every specified constraint to pass:
+
+1. File category must match `fileTypes` (if specified)
+2. **AND** file extension must be in `whiteListExtensions` (if specified)
+3. **AND** file extension must **not** be in `blackListExtensions` (if specified)
+
+#### `fileTypes` + `whiteListExtensions`
+
+`fileTypes` coarsely pre-filters by Apple UTType (image/video/audio/file). `whiteListExtensions` then narrows to specific extensions within that category.
+
+```
+fileTypes=['image'] + whiteListExtensions=['png','jpg']
+────────────────────────────────────────────────────────
+photo.png  → image ✅ → png  ✅ → PASS
+photo.heic → image ✅ → heic ❌ → REJECT
+doc.pdf    → file  ❌          → REJECT
+```
+
+Typical use-cases:
+- Accept only raster images, block HEIC/RAW: `fileTypes=['image'] + whiteListExtensions=['png','jpg','jpeg']`
+- Accept only specific document formats: `fileTypes=['file'] + whiteListExtensions=['pdf','docx','xlsx']`
+- Accept audio but only lossless: `fileTypes=['audio'] + whiteListExtensions=['flac','wav','aiff']`
+
+#### `fileTypes` + `blackListExtensions`
+
+`fileTypes` accepts the whole category; `blackListExtensions` carves out unwanted extensions inside it.
+
+```
+fileTypes=['image'] + blackListExtensions=['heic','heif']
+──────────────────────────────────────────────────────────
+photo.png  → image ✅ → not heic ✅ → PASS
+photo.heic → image ✅ → heic     ❌ → REJECT
+video.mp4  → video ❌             → REJECT
+```
+
+Typical use-cases:
+- Accept all images except HEIC: `fileTypes=['image'] + blackListExtensions=['heic','heif']`
+- Accept all documents except archives: `fileTypes=['file'] + blackListExtensions=['zip','rar','7z']`
+
+#### All three together
+
+`fileTypes` + `whiteListExtensions` + `blackListExtensions` can be combined, though `whitelist` and `blacklist` on the same extension set is unusual. A more realistic pattern is using `fileTypes` for category selection and one list for extension refinement.
+
+---
+
+## Multi-file dropping
+
+Enable with `isEnableMultiDropping`. All results — even a single-file drop — arrive in `onFileItemsReceived` grouped by category:
+
+```tsx
+import { ViewDrop, MapKeysMultiItems, type FileInfo } from 'react-native-viewdrop-ios';
+
+<ViewDrop
+  isEnableMultiDropping
+  onFileItemsReceived={(data) => {
+    // data.image  → FileInfo[]  (PNG, JPEG, HEIC, …)
+    // data.video  → FileInfo[]  (MP4, MOV, …)
+    // data.audio  → FileInfo[]  (MP3, AAC, …)
+    // data.file   → FileInfo[]  (PDF, ZIP, DOCX, …)
+    console.log(data);
+  }}
+/>
+```
+
+`FileInfo` shape:
+```ts
+type FileInfo = {
+  fileName: string;       // e.g. "photo.png"
+  fileUrl: string;        // absolute path to a temporary copy on disk
+  typeIdentifier: string; // UTType category: "image" | "video" | "audio" | "file"
+};
+```
+
+---
 
 ## Examples
 
-### Basic usage with file types
-```typescript
-import ViewDrop from 'react-native-view-drop';
+### Accept any file — single drop
 
-// Allow only images and videos
-<ViewDrop fileTypes={['image', 'video']} />
+```tsx
+<ViewDrop
+  onImageReceived={(base64) => setImage(base64)}
+  onVideoReceived={({ fullUrl }) => setVideo(fullUrl)}
+  onAudioReceived={({ fullUrl }) => setAudio(fullUrl)}
+  onFileReceived={({ fileName, fileUrl }) => console.log(fileName, fileUrl)}
+  onDropItemDetected={() => setHint('Drop!')}
+/>
 ```
 
-### Using white list extensions
-```typescript
-// Allow only PNG and JPG files
-<ViewDrop whiteListExtensions={['png', 'jpg', 'jpeg']} />
+### Accept any file — multi drop
 
-// Allow only PNG and JPG images
+```tsx
+<ViewDrop
+  isEnableMultiDropping
+  onFileItemsReceived={(data) => {
+    data.image?.forEach((f) => console.log('image:', f.fileName));
+    data.video?.forEach((f) => console.log('video:', f.fileName));
+    data.file?.forEach((f)  => console.log('file:', f.fileName));
+  }}
+/>
+```
+
+### Allow only images (whitelist by type)
+
+```tsx
 <ViewDrop
   fileTypes={['image']}
-  whiteListExtensions={['png', 'jpg', 'jpeg']}
+  onImageReceived={(base64) => setImage(base64)}
 />
 ```
 
-### Using black list extensions
-```typescript
-// Block specific file types
-<ViewDrop blackListExtensions={['exe', 'bat', 'sh']} />
-```
+### Allow only PNG and JPEG (whitelist by extension)
 
-### Combining white and black lists
-```typescript
-// Allow PNG and JPG, but block HEIC
+If any dragged file is not a PNG or JPEG the whole drop is rejected (red indicator).
+
+```tsx
 <ViewDrop
   whiteListExtensions={['png', 'jpg', 'jpeg']}
-  blackListExtensions={['heic']}
+  onImageReceived={(base64) => setImage(base64)}
 />
 ```
 
-### Priority and combinations
-- If only `fileTypes` is specified, any file of those types is allowed
-- If `whiteListExtensions` is specified, only files with listed extensions are allowed
-- If `blackListExtensions` is specified, files with listed extensions are blocked
-- When combining multiple constraints:
-  - File must match `fileTypes` (if specified)
-  - AND must match `whiteListExtensions` (if specified)
-  - AND must not match `blackListExtensions` (if specified)
+### Block executables — reject whole batch
 
+```tsx
+// If the user drags even one .exe, the entire drop is rejected.
+<ViewDrop
+  isEnableMultiDropping
+  blackListExtensions={['exe', 'bat', 'sh']}
+  onFileItemsReceived={(data) => console.log(data)}
+/>
+```
+
+### Block executables — filter silently (allowPartialDrop)
+
+```tsx
+// .exe files are removed; the rest arrive normally.
+<ViewDrop
+  isEnableMultiDropping
+  allowPartialDrop
+  blackListExtensions={['exe', 'bat', 'sh']}
+  onFileItemsReceived={(data) => console.log(data)}
+/>
+```
+
+### Accept only PDF from a mixed batch (allowPartialDrop + whitelist)
+
+```tsx
+// Drop [a.pdf, b.png, c.txt] → only a.pdf arrives in the callback.
+<ViewDrop
+  isEnableMultiDropping
+  allowPartialDrop
+  whiteListExtensions={['pdf']}
+  onFileItemsReceived={(data) => {
+    // data.file = [{ fileName: 'a.pdf', ... }]
+  }}
+/>
+```
+
+### `fileTypes` + `whiteListExtensions` — only PNG/JPEG images (strict)
+
+The entire drop session is rejected if any file is not a PNG or JPEG image.
+
+```tsx
+<ViewDrop
+  isEnableMultiDropping
+  fileTypes={['image']}
+  whiteListExtensions={['png', 'jpg', 'jpeg']}
+  onFileItemsReceived={(data) => {
+    // data.image contains only PNG/JPEG files
+  }}
+/>
+```
+
+### `fileTypes` + `whiteListExtensions` + `allowPartialDrop` — filter PNG/JPEG per-file
+
+Drop session is always accepted. Non-PNG/JPEG files and non-image files are silently removed from the result.
+
+```tsx
+// Drop [photo.png, photo.heic, doc.pdf]
+// → onFileItemsReceived receives only photo.png
+<ViewDrop
+  isEnableMultiDropping
+  allowPartialDrop
+  fileTypes={['image']}
+  whiteListExtensions={['png', 'jpg', 'jpeg']}
+  onFileItemsReceived={(data) => {
+    // data.image = [{ fileName: 'photo.png', ... }]
+  }}
+/>
+```
+
+### `fileTypes` + `blackListExtensions` — images, but block HEIC (strict)
+
+Drops containing HEIC files or non-image files are rejected at the session level.
+
+```tsx
+<ViewDrop
+  isEnableMultiDropping
+  fileTypes={['image']}
+  blackListExtensions={['heic', 'heif']}
+  onFileItemsReceived={(data) => {
+    // data.image contains any image format except HEIC/HEIF
+  }}
+/>
+```
+
+### `fileTypes` + `blackListExtensions` + `allowPartialDrop` — remove HEIC per-file
+
+Drop session is always accepted. HEIC/HEIF images are filtered out; all other image formats pass through.
+
+```tsx
+// Drop [photo.png, photo.heic, shot.heif]
+// → onFileItemsReceived receives only photo.png
+<ViewDrop
+  isEnableMultiDropping
+  allowPartialDrop
+  fileTypes={['image']}
+  blackListExtensions={['heic', 'heif']}
+  onFileItemsReceived={(data) => {
+    // data.image = [{ fileName: 'photo.png', ... }]
+  }}
+/>
+```
+
+### `fileTypes` + `whiteListExtensions` — documents only (PDF, DOCX, XLSX)
+
+```tsx
+<ViewDrop
+  isEnableMultiDropping
+  fileTypes={['file']}
+  whiteListExtensions={['pdf', 'docx', 'xlsx']}
+  onFileItemsReceived={(data) => {
+    data.file?.forEach((f) => console.log(f.fileName));
+  }}
+/>
+```
+
+---
 
 ## Notes
-- If you want restrict or add file such as doc,txt, pdf and e.t.c - should use combination of `whileListExtensions` and `blackListExtensions`.
-- If you don't care about specific file extensions within images, video, audio - you should ONLY use the `fileTypes` field. Apple's generalized types are used there
-- If you want add some specific type to `fileTypes`, for example `.ogg` for audio. You should use combination of `fileTypes` and `whiteListExtensions` :
-```
- <ViewDrop
-      style={styles.container}
-      ... other props
-      fileTypes={['image', 'audio']}
-      // in this example whileListExtensions works as a type set extender
-      whiteListExtensions={['ogg']}
-    >
-```
 
+- `onImageReceived`, `onVideoReceived`, `onAudioReceived`, `onFileReceived` are only called when `isEnableMultiDropping` is **false**. When multi-dropping is enabled, use `onFileItemsReceived` for everything.
+- `allowPartialDrop` has no effect unless `isEnableMultiDropping` is also enabled.
+- `fileUrl` in `FileInfo` is a path to a **temporary** copy of the file. Copy it to a permanent location if you need it after the current run loop.
+- Extensions in `whiteListExtensions` / `blackListExtensions` are case-insensitive (`'PDF'` and `'pdf'` are the same).
+- `fileTypes` and `whiteListExtensions` / `blackListExtensions` operate on **different mechanisms** and cannot substitute for each other. `fileTypes` uses Apple's UTType conformance system — formats not registered in iOS (e.g. `.ogg`) will never conform to `kUTTypeAudio`, so adding `'ogg'` to `whiteListExtensions` will not help when `fileTypes=['audio']` is set. For non-standard or niche formats, omit `fileTypes` entirely and rely solely on `whiteListExtensions` to control what is accepted.
 
-## Future Plans
+---
 
-- Settings for resize images
-- Works with preview of dropping
-- Works with multiple files drop
-- MacOS supports
-- Fabric supports
+## Future plans
+
+- Image resize settings before delivery
+- Drop preview / badge customisation
+- macOS support
+- Fabric / New Architecture support
+
+---
 
 ## Contributing
 
