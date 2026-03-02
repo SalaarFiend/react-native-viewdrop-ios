@@ -23,8 +23,15 @@ export const ViewDrop: FC<Props> = ({
   blackListExtensions,
   isEnableMultiDropping,
   allowPartialDrop,
+  imageResize,
   ...props
 }) => {
+  const {
+    maxWidth: imageResizeMaxWidth = 0,
+    maxHeight: imageResizeMaxHeight = 0,
+    quality: imageCompressQuality = 1.0,
+    mode: imageResizeMode = 'aspectFit',
+  } = imageResize ?? {};
   const onImageReceivedEvent = (
     event: SyntheticEvent<undefined, { image: string }>
   ) => {
@@ -103,6 +110,10 @@ export const ViewDrop: FC<Props> = ({
       fileTypes={fileTypes}
       isEnableMultiDropping={isEnableMultiDropping}
       allowPartialDrop={allowPartialDrop}
+      imageResizeMaxWidth={imageResizeMaxWidth}
+      imageResizeMaxHeight={imageResizeMaxHeight}
+      imageCompressQuality={imageCompressQuality}
+      imageResizeMode={imageResizeMode}
       onFileItemsReceived={onFileItemsReceivedEvent}
     >
       {children}

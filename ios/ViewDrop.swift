@@ -39,6 +39,10 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
   @objc private var blackListExtensions: [String]?
   @objc private var isEnableMultiDropping: Bool = false
   @objc private var allowPartialDrop: Bool = false
+  @objc private var imageResizeMaxWidth:  CGFloat = 0
+  @objc private var imageResizeMaxHeight: CGFloat = 0
+  @objc private var imageCompressQuality: CGFloat = 1.0
+  @objc private var imageResizeMode: NSString = "aspectFit"
 
 
   struct FileInfo {
@@ -135,6 +139,32 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
   }
 
 
+  private func resizeImageIfNeeded(_ image: UIImage) -> UIImage {
+    let origW = CGFloat(image.cgImage?.width  ?? 0)
+    let origH = CGFloat(image.cgImage?.height ?? 0)
+    guard origW > 0, origH > 0 else { return image }
+
+    let hasCustomLimits = imageResizeMaxWidth > 0 || imageResizeMaxHeight > 0
+
+    let maxW: CGFloat
+    let maxH: CGFloat
+
+    if hasCustomLimits {
+      maxW = imageResizeMaxWidth  > 0 ? imageResizeMaxWidth  : origW
+      maxH = imageResizeMaxHeight > 0 ? imageResizeMaxHeight : origH
+    } else {
+      guard origW > 6048 || origH > 4032 else { return image }
+      maxW = 2048
+      maxH = 2048
+    }
+
+    guard origW > maxW || origH > maxH else { return image }
+
+    let mode: UIView.ContentMode = (imageResizeMode as String) == "aspectFill"
+      ? .scaleAspectFill : .scaleAspectFit
+    return image.vImageScaledImageWithSize(destSize: CGSizeMake(maxW, maxH), contentMode: mode) ?? image
+  }
+
   func handleDroppedFiles(files: [FileInfo]) {
       guard isEnableMultiDropping else { return }
 
@@ -163,9 +193,28 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
 
                   // Добавляем файл в соответствующую категорию по типу
 
+                var resolvedFileUrl = file.fileUrl
+
+                let needsResize  = self.imageResizeMaxWidth > 0 || self.imageResizeMaxHeight > 0
+                let needsQuality = self.imageCompressQuality < 1.0 && self.imageCompressQuality > 0
+
+                if fileType == "image" && (needsResize || needsQuality),
+                   let img = UIImage(contentsOfFile: url.path) {
+                    let quality = self.imageCompressQuality > 0 ? self.imageCompressQuality : 1.0
+                    let resized  = needsResize ? self.resizeImageIfNeeded(img) : img
+                    let tmpPath  = URL(fileURLWithPath: NSTemporaryDirectory())
+                        .appendingPathComponent(UUID().uuidString + "_" + file.fileName)
+                    let data: Data? = self.hasAlpha(image: resized)
+                        ? resized.pngData()
+                        : resized.jpegData(compressionQuality: quality)
+                    if let data = data, (try? data.write(to: tmpPath)) != nil {
+                        resolvedFileUrl = tmpPath.path
+                    }
+                }
+
                 let test = [
                   "fileName" : file.fileName,
-                  "fileUrl" : file.fileUrl,
+                  "fileUrl" : resolvedFileUrl,
                   "typeIdentifier" : file.typeIdentifier
                 ]
 
@@ -230,19 +279,14 @@ class ViewDrop: UIView, UIDropInteractionDelegate {
         if self.onImageReceived != nil {
           let images = imageItems as! [UIImage]
           guard var oneImg = images.first else {return}
-          let widthImage = oneImg.cgImage?.width ?? 800
-          let heightImage = oneImg.cgImage?.height ?? 800
-
-          if(widthImage > 6048 || heightImage > 4032) {
-            oneImg = oneImg.vImageScaledImageWithSize(destSize: CGSizeMake(2048, 2048),contentMode: .scaleAspectFit)
-          }
+          oneImg = self.resizeImageIfNeeded(oneImg)
           var base64ImgWithPrefix = "";
 
           if(self.hasAlpha(image: oneImg)){
             guard let base64Img = oneImg.pngData()?.base64EncodedString(options: Data.Base64EncodingOptions.lineLength64Characters) else {return}
             base64ImgWithPrefix = self.pngPrefix.appending(base64Img)
           } else {
-            guard let base64Img = oneImg.jpegData(compressionQuality: 1.0)?.base64EncodedString(options: Data.Base64EncodingOptions.lineLength64Characters) else {return}
+            guard let base64Img = oneImg.jpegData(compressionQuality: self.imageCompressQuality > 0 ? self.imageCompressQuality : 1.0)?.base64EncodedString(options: Data.Base64EncodingOptions.lineLength64Characters) else {return}
             base64ImgWithPrefix = self.jpegPrefix.appending(base64Img)
           }
           self.onImageReceived!([ "image" : base64ImgWithPrefix ])

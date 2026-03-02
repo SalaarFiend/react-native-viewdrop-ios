@@ -15,4 +15,8 @@
   RCT_EXPORT_VIEW_PROPERTY(blackListExtensions, NSArray)
   RCT_EXPORT_VIEW_PROPERTY(isEnableMultiDropping, BOOL)
   RCT_EXPORT_VIEW_PROPERTY(allowPartialDrop, BOOL)
+  RCT_EXPORT_VIEW_PROPERTY(imageResizeMaxWidth,  CGFloat)
+  RCT_EXPORT_VIEW_PROPERTY(imageResizeMaxHeight, CGFloat)
+  RCT_EXPORT_VIEW_PROPERTY(imageCompressQuality, CGFloat)
+  RCT_EXPORT_VIEW_PROPERTY(imageResizeMode,      NSString)
 @end

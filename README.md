@@ -65,6 +65,26 @@ import { ViewDrop } from 'react-native-viewdrop-ios';
 | `isEnableMultiDropping` | `boolean` | `false` | Routes all drops (including single-file) through `onFileItemsReceived`. |
 | `allowPartialDrop` | `boolean` | `false` | Requires `isEnableMultiDropping`. Changes filter behaviour from session-level to per-file (see below). |
 
+### Image resize props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `imageResize` | `ImageResizeConfig` | — | Downscale and/or recompress images before they are delivered to `onImageReceived`. Has no effect on videos, audio, or generic files. |
+
+```ts
+type ImageResizeConfig = {
+  maxWidth?:  number;                     // max output width in pixels;  0 = unlimited (default: 0)
+  maxHeight?: number;                     // max output height in pixels; 0 = unlimited (default: 0)
+  quality?:   number;                     // JPEG compression 0.0–1.0 (default: 1.0)
+  mode?:      'aspectFit' | 'aspectFill'; // scaling mode              (default: 'aspectFit')
+};
+```
+
+- Only fields you specify are applied; omitted fields use their defaults.
+- When both `maxWidth` and `maxHeight` are `0` (or `imageResize` is not set) images are delivered at their original size.
+- `aspectFit` (default) fits the image inside the bounding box, preserving aspect ratio. `aspectFill` fills the bounding box, cropping if necessary.
+- Output encoding: JPEG when `quality < 1.0`, PNG otherwise.
+
 ---
 
 ## Filtering in depth
@@ -193,10 +213,18 @@ import { ViewDrop, MapKeysMultiItems, type FileInfo } from 'react-native-viewdro
 ```ts
 type FileInfo = {
   fileName: string;       // e.g. "photo.png"
-  fileUrl: string;        // absolute path to a temporary copy on disk
+  fileUrl: string;        // absolute path to a temporary copy on disk (no "file://" prefix)
   typeIdentifier: string; // UTType category: "image" | "video" | "audio" | "file"
 };
 ```
+
+> **`fileUrl` is a raw file-system path**, not a URI — it does not include a `file://` scheme.
+> To display a file in a React Native `<Image>` or pass it to a media player, prepend the scheme manually:
+> ```tsx
+> <Image source={{ uri: `file://${fileUrl}` }} />
+> ```
+> The file is a **temporary copy** managed by iOS and may be deleted after the drop session ends.
+> Copy it to a permanent location (e.g. the app's Documents directory) if you need it beyond the current screen.
 
 ---
 
@@ -363,13 +391,44 @@ Drop session is always accepted. HEIC/HEIF images are filtered out; all other im
 />
 ```
 
+### Resize and compress images before delivery
+
+```tsx
+<ViewDrop
+  imageResize={{ maxWidth: 800, maxHeight: 800, quality: 0.8 }}
+  onImageReceived={(base64) => setImage(base64)}
+/>
+```
+
+Drop an image → it is scaled down to fit within 800×800 px (aspectFit) and JPEG-compressed at 80% quality before being base64-encoded and sent to the callback.
+
+```tsx
+// Only limit width, keep quality lossless
+<ViewDrop
+  imageResize={{ maxWidth: 1200 }}
+  onImageReceived={(base64) => setImage(base64)}
+/>
+
+// Lossless PNG, no size limit — same as not passing imageResize at all
+<ViewDrop
+  imageResize={{ quality: 1.0 }}
+  onImageReceived={(base64) => setImage(base64)}
+/>
+
+// Crop to fill a square thumbnail
+<ViewDrop
+  imageResize={{ maxWidth: 400, maxHeight: 400, mode: 'aspectFill', quality: 0.9 }}
+  onImageReceived={(base64) => setImage(base64)}
+/>
+```
+
 ---
 
 ## Notes
 
 - `onImageReceived`, `onVideoReceived`, `onAudioReceived`, `onFileReceived` are only called when `isEnableMultiDropping` is **false**. When multi-dropping is enabled, use `onFileItemsReceived` for everything.
 - `allowPartialDrop` has no effect unless `isEnableMultiDropping` is also enabled.
-- `fileUrl` in `FileInfo` is a path to a **temporary** copy of the file. Copy it to a permanent location if you need it after the current run loop.
+- `fileUrl` in `FileInfo` is a **raw path without a `file://` scheme** (e.g. `/private/var/.../photo.png`). Use `` `file://${fileUrl}` `` when passing it to `<Image>`, video players, or any API that expects a URI. The file is a temporary copy managed by iOS — copy it to a permanent location if you need it to persist.
 - Extensions in `whiteListExtensions` / `blackListExtensions` are case-insensitive (`'PDF'` and `'pdf'` are the same).
 - `fileTypes` and `whiteListExtensions` / `blackListExtensions` operate on **different mechanisms** and cannot substitute for each other. `fileTypes` uses Apple's UTType conformance system — formats not registered in iOS (e.g. `.ogg`) will never conform to `kUTTypeAudio`, so adding `'ogg'` to `whiteListExtensions` will not help when `fileTypes=['audio']` is set. For non-standard or niche formats, omit `fileTypes` entirely and rely solely on `whiteListExtensions` to control what is accepted.
 
@@ -377,7 +436,6 @@ Drop session is always accepted. HEIC/HEIF images are filtered out; all other im
 
 ## Future plans
 
-- Image resize settings before delivery
 - Drop preview / badge customisation
 - macOS support
 - Fabric / New Architecture support

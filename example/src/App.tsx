@@ -41,6 +41,10 @@ const TYPE_SCENARIO = {
   FileTypesBlackListStrict: 'filetypes-blacklist-strict',
   // Partial: per-file — blacklisted extensions removed, rest of the category passes
   FileTypesBlackListPartial: 'filetypes-blacklist-partial',
+
+  // ── Image resize ──────────────────────────────────────────────────────────
+  // Images are scaled to 800×800 (aspectFit) and compressed at JPEG quality 0.8
+  ImageResize: 'image-resize',
 } as const;
 
 type Scenario = (typeof TYPE_SCENARIO)[keyof typeof TYPE_SCENARIO];
@@ -59,7 +63,7 @@ type Scenario = (typeof TYPE_SCENARIO)[keyof typeof TYPE_SCENARIO];
 // const SCENARIO: Scenario = TYPE_SCENARIO.MultiBlacklistStrict;
 
 // D — Multi-drop + blacklist + allowPartialDrop
-const SCENARIO: Scenario = TYPE_SCENARIO.MultiBlackListPartial;
+const SCENARIO: Scenario = TYPE_SCENARIO.ImageResize;
 
 // E — Multi-drop + whitelist (strict)
 // const SCENARIO: Scenario = TYPE_SCENARIO.MultiWhiteListStrict;
@@ -78,6 +82,9 @@ const SCENARIO: Scenario = TYPE_SCENARIO.MultiBlackListPartial;
 
 // J — fileTypes + blacklist + allowPartialDrop: images only, HEIC removed per-file
 // const SCENARIO: Scenario = TYPE_SCENARIO.FileTypesBlackListPartial;
+
+// K — image resize: images scaled to 800×800, JPEG quality 0.8
+// const SCENARIO: Scenario = TYPE_SCENARIO.ImageResize;
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -262,6 +269,17 @@ export default function App() {
           allowPartialDrop: true,
           fileTypes: ['image'],
           blackListExtensions: ['heic', 'heif'],
+        };
+
+      case TYPE_SCENARIO.ImageResize:
+        // Multi-drop with images scaled to 800×800 (aspectFit) and JPEG quality 0.8
+        return {
+          imageResize: {
+            maxWidth: 800,
+            maxHeight: 800,
+            quality: 0.8,
+            mode: 'aspectFill' as const,
+          },
         };
 
       default:

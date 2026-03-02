@@ -21,6 +21,13 @@ export enum MapKeysMultiItems {
   file = 'file',
 }
 
+export type ImageResizeConfig = {
+  maxWidth?: number;
+  maxHeight?: number;
+  quality?: number;
+  mode?: 'aspectFit' | 'aspectFill';
+};
+
 export interface ViewDropNativeModuleProps {
   onImageReceived: (
     event: SyntheticEvent<undefined, { image: string }>
@@ -46,6 +53,10 @@ export interface ViewDropNativeModuleProps {
   blackListExtensions?: string[];
   isEnableMultiDropping?: boolean;
   allowPartialDrop?: boolean;
+  imageResizeMaxWidth?: number;
+  imageResizeMaxHeight?: number;
+  imageCompressQuality?: number;
+  imageResizeMode?: 'aspectFit' | 'aspectFill';
 }
 
 export type Props = {
@@ -66,4 +77,5 @@ export type Props = {
    * Files are filtered individually at drop time using blackListExtensions, whiteListExtensions, and fileTypes.
    */
   allowPartialDrop?: boolean;
+  imageResize?: ImageResizeConfig;
 } & ViewProps;
